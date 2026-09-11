@@ -1,32 +1,32 @@
 {
   "schema": 1,
   "docsRoot": "https://docs.copilotkit.ai/angular/deepagents",
-  "syncedAt": "2026-08-18T06:47:15.670Z",
+  "syncedAt": "2026-09-04T07:57:58.605Z",
   "pages": {
     "/angular/deepagents": {
       "file": "angular__deepagents.md",
-      "sha256": "f7a8f7ee65bd121d4f3fd514895ec3d40718dfe243de228e99248ad1e6b3f800",
-      "bytes": 6733,
-      "lines": 172,
+      "sha256": "7df8359d81143de10e7de7ef5a036d7034c89b9f19015710433d02bb83b2123d",
+      "bytes": 7149,
+      "lines": 185,
       "routes": [
         "/",
         "/doc-sync"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Fri, 04 Sep 2026 07:57:58 GMT"
     },
     "/angular/deepagents/guides/a2ui": {
       "file": "angular__deepagents__guides__a2ui.md",
-      "sha256": "5db8a61550d566ee893d8e87f6b0d2ee6d007d9b61d39fe81da48573a76649f5",
-      "bytes": 5849,
+      "sha256": "24ad1e1ac938d097b8bb5290f7e68b1bc9e397f4e6dc276a6290e689548d7de6",
+      "bytes": 5829,
       "lines": 195,
       "routes": [
         "/a2ui"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Sun, 30 Aug 2026 11:06:19 GMT"
     },
     "/angular/deepagents/guides/chat-ui": {
       "file": "angular__deepagents__guides__chat-ui.md",
@@ -42,27 +42,27 @@
     },
     "/angular/deepagents/guides/frontend-tools-generative-ui": {
       "file": "angular__deepagents__guides__frontend-tools-generative-ui.md",
-      "sha256": "90c41e8bdc69315b97b023f8938f90c3d2e414c6c9602fa91968c22346974cfe",
-      "bytes": 5732,
-      "lines": 178,
+      "sha256": "c14d6d00b44f495def7cc34c9e500915a8e134fd5752860a0aaefb3e66b8882f",
+      "bytes": 7888,
+      "lines": 236,
       "routes": [
         "/frontend-tools-generative-ui"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Fri, 04 Sep 2026 07:57:58 GMT"
     },
     "/angular/deepagents/guides/human-in-the-loop": {
       "file": "angular__deepagents__guides__human-in-the-loop.md",
-      "sha256": "bc6b763af2b18f699767b2acc594e4ebe90f36074ba162057740d24a9df150ae",
-      "bytes": 7176,
-      "lines": 227,
+      "sha256": "f2dd576c7dbde5ad637e11c029340762cf9c1358664c92f36a74b3f3759830ad",
+      "bytes": 8992,
+      "lines": 274,
       "routes": [
         "/human-in-the-loop"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Sun, 30 Aug 2026 11:06:19 GMT"
     },
     "/angular/deepagents/guides/shared-state": {
       "file": "angular__deepagents__guides__shared-state.md",
@@ -103,17 +103,29 @@
       "age": 0,
       "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     },
+    "/angular/deepagents/inspector": {
+      "file": "angular__deepagents__inspector.md",
+      "sha256": "bd26054156e6b631da340e377739c1040252934f16a68a985f86a9a6cccdf03b",
+      "bytes": 2961,
+      "lines": 72,
+      "routes": [
+        "/inspector"
+      ],
+      "status": "ok",
+      "age": 0,
+      "date": "Sun, 30 Aug 2026 11:24:20 GMT"
+    },
     "/angular/deepagents/quickstart": {
       "file": "angular__deepagents__quickstart.md",
-      "sha256": "f7a8f7ee65bd121d4f3fd514895ec3d40718dfe243de228e99248ad1e6b3f800",
-      "bytes": 6733,
-      "lines": 172,
+      "sha256": "7df8359d81143de10e7de7ef5a036d7034c89b9f19015710433d02bb83b2123d",
+      "bytes": 7149,
+      "lines": 185,
       "routes": [
         "/quickstart"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Fri, 04 Sep 2026 07:57:58 GMT"
     }
   },
   "sitemap": {

@@ -1,6 +1,12 @@
 /**
- * "Handle an interrupt", verbatim. The controller is headless, so this panel
- * renders nothing until the backend emits an AG-UI interrupt.
+ * "Handle an interrupt with a typed controller", verbatim. The controller is
+ * headless, so this panel renders nothing until the backend emits an AG-UI
+ * interrupt.
+ *
+ * `injectInterrupt` takes the agent id positionally as of @copilotkit/angular
+ * 0.4.0. The original `{ agentId }` options object still compiles -- the
+ * package keeps a compatibility overload -- but the guide now shows the
+ * positional form, so this file does too.
  * https://docs.copilotkit.ai/angular/deepagents/guides/human-in-the-loop
  */
 import { Component } from '@angular/core';
@@ -35,9 +41,7 @@ type ReviewRequest = {
   `,
 })
 export class InterruptPanelComponent {
-  protected readonly controller = injectInterrupt<ReviewRequest>({
-    agentId: 'default',
-  });
+  protected readonly controller = injectInterrupt<ReviewRequest>('default');
 
   protected asReviewRequest(value: unknown): ReviewRequest {
     return typeof value === 'object' && value !== null

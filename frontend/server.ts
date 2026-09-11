@@ -44,7 +44,7 @@ const runtime = new CopilotRuntime({
   a2ui: {},
 });
 
-const port = Number(process.env["PORT"] ?? 8200);
+const port = Number(process.env["PORT"] ?? 8203);
 
 createServer(
   createCopilotNodeListener({

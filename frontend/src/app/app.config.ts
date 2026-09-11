@@ -50,7 +50,7 @@ export const appConfig: ApplicationConfig = {
     ),
     provideClientHydration(),
     provideCopilotKit({
-      runtimeUrl: 'http://localhost:8200/api/copilotkit',
+      runtimeUrl: 'http://localhost:8203/api/copilotkit',
       a2ui: {
         recovery: { showAfterMs: 2_000, showAfterAttempts: 2 },
       },

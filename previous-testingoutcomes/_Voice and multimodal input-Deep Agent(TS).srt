@@ -1,0 +1,43 @@
+1
+00:00:00,880 --> 00:00:04,720
+So I'm working on deep pressing the front endanger and currently testing the voice
+
+2
+00:00:04,800 --> 00:00:09,760
+and multi-module. So here is this somebody code.
+
+3
+00:00:09,920 --> 00:00:12,880
+Now for my own code,
+
+4
+00:00:13,040 --> 00:00:16,923
+let me just show you. read attachment,
+
+5
+00:00:17,003 --> 00:00:21,963
+the remote level, the list, memory list and then if we go down
+
+6
+00:00:24,123 --> 00:00:27,963
+and we'll show you the whole code which is utilizing the components,
+
+7
+00:00:28,283 --> 00:00:31,723
+then the packages and now let's test it.
+
+8
+00:00:46,645 --> 00:00:49,568
+I should be able to understand the merchant the image
+
+9
+00:00:54,288 --> 00:00:59,168
+it does now let's try voice tell me a joke tell me
+
+10
+00:00:59,169 --> 00:01:03,808
+a joke which is unable to transcribe
+
+11
+00:01:03,888 --> 00:01:05,771
+but But I have written so that's uh issue.

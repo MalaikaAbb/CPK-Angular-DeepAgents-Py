@@ -1,0 +1,55 @@
+1
+00:00:00,800 --> 00:00:04,240
+So, I'm working on the DP agency generative UI A2 UI in the fixed
+
+2
+00:00:04,320 --> 00:00:08,560
+schema A2 UI module, and I have followed the exact same code and steps
+
+3
+00:00:08,561 --> 00:00:12,800
+as stated in the documentation. And I have also made the flight scheme adjacent
+
+4
+00:00:12,960 --> 00:00:15,760
+from the A2 UI composer, and these are.
+
+5
+00:00:16,203 --> 00:00:18,363
+My current versions that I'm currently using,
+
+6
+00:00:18,523 --> 00:00:20,603
+and here it is.
+
+7
+00:00:20,763 --> 00:00:24,443
+And my current Lego-palette version installed is 1.69.2,
+
+8
+00:00:25,083 --> 00:00:28,843
+and here is my page.dsx file,
+
+9
+00:00:29,163 --> 00:00:31,883
+and here is my flight schema, which I have generated.
+
+10
+00:00:32,165 --> 00:00:35,525
+from A to UI Compasser and here is my backend file.
+
+11
+00:00:37,045 --> 00:00:40,885
+But the issue that I'm facing is that it says that A to UI
+
+12
+00:00:41,125 --> 00:00:45,765
+error which is the specific basic the
+
+13
+00:00:45,925 --> 00:00:49,728
+catalog is not found. So It is an issue and it needs to be
+
+14
+00:00:49,729 --> 00:00:50,848
+fixed. Thank you.

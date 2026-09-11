@@ -46,7 +46,10 @@ import { Callout, Panel, SourceCode, TryIt } from '../components/ui';
               <td class="py-2 pr-4">
                 The backend agent emits an AG-UI interrupt
               </td>
-              <td class="py-2"><code>injectInterrupt</code></td>
+              <td class="py-2">
+                <code>AgentStore.interruptController</code>,
+                <code>injectInterrupt</code>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -87,16 +90,50 @@ import { Callout, Panel, SourceCode, TryIt } from '../components/ui';
 
       <ui-panel heading="The interrupt controller">
         <p class="mb-3 text-sm text-slate-700">
-          Mounted above the chat in the demo, but headless — it renders nothing
-          until the backend emits an AG-UI interrupt (or the legacy
-          <code>on_interrupt</code> custom event). The DeepAgents agent in this
-          repo does not emit one, so this half stays idle. The controller clears
-          stale decisions when the thread changes, and
-          <code>resolve</code>/<code>cancel</code> share one in-flight resume
-          promise so a double click cannot start two resume runs.
+          The guide's second path: the backend agent, not the model, chooses
+          the pause. 0.4.0 put the pending interrupt on the agent store itself,
+          at <code>store().interruptController</code>, so a component holding a
+          store needs nothing else.
+        </p>
+        <p class="mb-3 text-sm text-slate-700">
+          It is mounted above the chat in the demo and stays blank: this
+          backend emits no AG-UI interrupt and no legacy
+          <code>on_interrupt</code> event, so there is never a pending decision
+          to draw. The route says so on screen, because a headless panel that
+          is idle looks exactly like one that has failed.
+        </p>
+        <ui-source
+          path="src/app/features/hitl/store-interrupt-panel.component.ts"
+        />
+      </ui-panel>
+
+      <p class="text-sm text-slate-600">
+        <strong>Note:</strong> the guide writes
+        <code>injectAgentStore("ticketing")</code> in that snippet. No
+        <code>ticketing</code> agent exists in these docs, so this route passes
+        <code>"default"</code> — the agent the quickstart registers. Everything
+        else is verbatim.
+      </p>
+
+      <ui-panel heading="The typed controller, for contrast">
+        <p class="mb-3 text-sm text-slate-700">
+          <code>injectInterrupt</code> is the escape hatch when the store
+          default is not enough — a typed payload, an <code>enabled</code>
+          filter, or a <code>handler</code> that prepares data for the view. As
+          of 0.4.0 it takes the agent id positionally,
+          <code>injectInterrupt&lt;T&gt;('default')</code>; the original
+          <code>{{ '{' }} agentId {{ '}' }}</code> object still works through a
+          compatibility overload.
+        </p>
+        <p class="mb-3 text-sm text-slate-700">
+          It is shown here as source but <em>not</em> mounted. The guide warns
+          against rendering it and the store controller for the same decision:
+          both observe the agent independently, so one interrupt would surface
+          in both and two clicks could resume the same run.
         </p>
         <ui-source path="src/app/features/hitl/interrupt-panel.component.ts" />
       </ui-panel>
+
     </div>
   `,
 })
@@ -109,7 +146,7 @@ export class InterruptFeatureComponent {
     "gen-ui-interrupt";
   protected readonly isHeadless = this.feature === "interrupt-headless";
   private readonly agentId = agentIdForCurrentIntegration(this.feature);
-  protected readonly controller = injectInterrupt({ agentId: this.agentId });
+  protected readonly controller = injectInterrupt(this.agentId);
   protected readonly payload = computed(() =>
     parseInterruptPayload(this.controller.event()?.value),
   );

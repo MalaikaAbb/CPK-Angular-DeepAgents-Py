@@ -16,6 +16,7 @@ import { MediaChatComponent } from '../features/attachments/media-chat.component
 import { ChatUiDemoComponent } from '../features/chat-ui/chat-ui-demo.component';
 import { HeadlessChatComponent } from '../features/headless/headless-chat.component';
 import { HitlChatComponent } from '../features/hitl/hitl-chat.component';
+import { InspectorProbeComponent } from '../features/inspector/inspector-probe.component';
 import { MemoryDemoComponent } from '../features/memory/memory-demo.component';
 import { VoiceChatComponent } from '../features/media/voice-chat.component';
 import { QuickstartChat } from '../features/quickstart/quickstart-chat';
@@ -74,6 +75,31 @@ export class VoiceDemo {}
   /></app-demo-frame>`,
 })
 export class HitlDemo {}
+
+
+/**
+ * The Inspector has no surface of its own — the framework mounts
+ * `cpk-web-inspector` on `document.body` once a CopilotKit component is on the
+ * route, so the chat below is what brings it into existence.
+ *
+ * The chat is mounted from the start. An earlier version gated it behind a
+ * "mount a chat" button to show the element appearing, but a button that exists
+ * only to prove a framework internal is not something a person testing this
+ * page would ever click — the point is whether the Inspector is simply there.
+ */
+@Component({
+  selector: 'app-inspector-demo',
+  imports: [DemoFrame, InspectorProbeComponent, QuickstartChat],
+  template: `<app-demo-frame backTo="/inspector">
+    <div style="display: flex; flex-direction: column; height: 100%">
+      <app-inspector-probe />
+      <div style="flex: 1; min-height: 0">
+        <app-quickstart-chat />
+      </div>
+    </div>
+  </app-demo-frame>`,
+})
+export class InspectorDemo {}
 
 @Component({
   selector: 'app-shared-state-demo',

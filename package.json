@@ -1,0 +1,25 @@
+{
+  "name": "copilotkit-deepagents-python-angular-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "automate": "node ci/automate.mjs",
+    "automate:pull": "node ci/automate.mjs --pull",
+    "automate:locked": "node ci/automate.mjs --use-lockfile",
+    "automate:issues": "node ci/automate.mjs --pages=issues",
+    "dev": "npm --prefix frontend run dev",
+    "record": "npm --prefix autorecorder run record --",
+    "record:all": "npm --prefix autorecorder run record",
+    "record:issues": "npm --prefix autorecorder run record -- --pages=issues",
+    "record:list": "npm --prefix autorecorder run record -- --list",
+    "record:doctor": "npm --prefix autorecorder run doctor",
+    "record:doctor:online": "npm --prefix autorecorder run doctor:online",
+    "manifest": "npm --prefix autorecorder run manifest",
+    "manifest:check": "npm --prefix autorecorder run manifest:check",
+    "mux": "node ci/mux.mjs",
+    "report": "node ci/build-report.mjs",
+    "drift": "node ci/check-doc-drift.mjs",
+    "drift:sync": "node ci/check-doc-drift.mjs --update",
+    "ci:pages": "node ci/list-pages.mjs"
+  }
+}
