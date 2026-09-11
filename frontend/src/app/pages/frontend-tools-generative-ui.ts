@@ -33,6 +33,15 @@ import { Callout, Panel, SourceCode, TryIt } from '../components/ui';
           the panel stays grey — the handler never ran.
         </p>
         <p class="mt-2 text-[var(--ink-soft)]">
+          <strong>Pass (display-only component):</strong> send
+          <em>Show me incident INC-4711 at sev1</em> — an
+          <code>IncidentCardComponent</code> renders the id in bold with the
+          severity beside it, and the agent writes no tool result of its own.
+          <strong>Fail:</strong> the incident comes back described in prose,
+          which means <code>show_incident</code> was never called.
+        </p>
+
+        <p class="mt-2 text-[var(--ink-soft)]">
           <strong>If nothing renders at all,</strong> check the AG-UI stream for
           a <code>TOOL_CALL_START</code>. On a long thread the model often
           answers from conversation history instead of calling the tool, and no
@@ -71,6 +80,42 @@ import { Callout, Panel, SourceCode, TryIt } from '../components/ui';
         where the card should be.
       </ui-callout>
       
+      <ui-panel
+        heading="registerComponent — display only, nothing on the agent side"
+      >
+        <p class="mb-3 text-sm text-[var(--ink-soft)]">
+          The simplest generative UI there is, and the only kind that needs
+          nothing on the agent side. <code>show_incident</code> has no handler
+          and no matching tool in <code>backend/main.py</code>: the frontend
+          declares it, CopilotKit forwards it to the agent over AG-UI, and the
+          agent calls it purely to put the component on screen. Core inserts an
+          empty tool result, so the turn completes without an invented result
+          being written into the thread.
+        </p>
+        <ui-source
+          path="src/app/features/tools/incident-card.component.ts"
+          note="standalone: true dropped — the default on v20+"
+        />
+        <p class="mt-4 text-sm text-[var(--ink-soft)]">
+          Contrast <code>registerRenderToolCall</code> above, which draws a tool
+          the agent already owns and so requires that tool to exist on the
+          agent side. The registration is in
+          <code>tools-chat.component.ts</code>, shown in full below.
+        </p>
+      </ui-panel>
+
+      <ui-callout
+        tone="warn"
+        title="A well-formed component is not a correct one"
+      >
+        The model fills these props from what it knows. A card rendered over
+        records this application does not hold looks the same in the browser, in
+        a screenshot, and in a video as a correct one. Share the page's data
+        with the agent through <code>CopilotKitAgentContext</code> — the
+        Shared state route does exactly that — then read the rendered fields
+        back against the records you hold.
+      </ui-callout>
+
       <ui-panel heading="Open Generative UI — sandboxed host functions">
         <p class="mb-3 text-sm text-[var(--ink-soft)]">
           The guide's <code>setDashboardFilter</code> sandbox function is
@@ -104,7 +149,7 @@ import { Callout, Panel, SourceCode, TryIt } from '../components/ui';
         </p>
       </ui-panel>
 
-      <ui-panel heading="Both registrations, one chat">
+      <ui-panel heading="All three registrations, one chat">
         <ui-source path="src/app/features/tools/tools-chat.component.ts" />
       </ui-panel>
     </div>
