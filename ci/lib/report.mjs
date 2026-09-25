@@ -167,7 +167,11 @@ function listVideos() {
         filename: r.filename || '',
         status: !r.success ? 'failed' : r.outcome === 'issue' ? 'issue' : r.warnings?.length ? 'pass-with-notes' : 'pass',
         area: r.knownIssue?.area ?? '',
-        notes: [...(r.warnings ?? []), ...(r.error ? [r.error] : [])],
+        notes: [
+          ...(r.reproduced ?? []).map((e) => `Known issue observed: ${e}`),
+          ...(r.warnings ?? []),
+          ...(r.error ? [r.error] : []),
+        ],
         // Kept verbatim so a downloaded package can be re-compared without the raw file.
         error: r.error ?? null,
         consoleErrors: r.consoleErrors ?? [],
@@ -194,7 +198,7 @@ function listVideos() {
 const STATUS_LABEL = {
   pass: '✅ Recorded',
   'pass-with-notes': '⚠️ Recorded with notes',
-  issue: '🐞 Documents a known issue',
+  issue: '🐞 Known issue observed',
   failed: '❌ Failed',
   'on-disk': '📁 On disk (no results file for this run)',
 };
@@ -212,6 +216,10 @@ export function generateReport(data) {
       checkedPages: data.driftResult?.total || 0,
       driftDetected: data.driftResult?.drifted || false,
       driftedPages: data.driftResult?.driftedPages || [],
+      unreadable: [
+        ...(data.driftResult?.errors || []).map((e) => ({ docPath: e.docPath, error: e.error })),
+        ...(data.driftResult?.sitemap?.error ? [{ docPath: 'sitemap.xml', error: data.driftResult.sitemap.error }] : []),
+      ],
     },
     packages: getPackageVersions(),
     healthChecks: data.health || {},
@@ -242,10 +250,14 @@ export function generateReport(data) {
     for (const p of report.docDrift.driftedPages) {
       lines.push(`- **[${p.severity}]** \`${p.docPath}\` (${p.file})`);
     }
-  } else {
+  } else if (report.docDrift.unreadable.length === 0) {
     lines.push(
       `✅ **No Doc Drift Detected:** All ${report.docDrift.checkedPages} pages match \`doc-snapshot/\`.`,
     );
+  }
+  if (report.docDrift.unreadable.length > 0) {
+    lines.push(`❓ **Drift unknown** for ${report.docDrift.unreadable.length} item(s) that could not be read:`);
+    for (const u of report.docDrift.unreadable) lines.push(`- \`${u.docPath}\`: ${u.error}`);
   }
   lines.push('');
 

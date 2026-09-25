@@ -19,7 +19,7 @@
 import { spawn, execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { checkAllDocDrift } from './check-doc-drift.mjs';
+import { checkAllDocDrift, formatUnreadable } from './check-doc-drift.mjs';
 import {
   BACKEND_DIR,
   BACKEND_PORT,
@@ -262,6 +262,17 @@ async function main() {
         console.log('👉 To run anyway, pass `--ignore-doc-drift` or `--force`.');
         generateReport(reportData);
         process.exit(2);
+      }
+      console.log('⚠️ --ignore-doc-drift provided. Proceeding anyway...\n');
+    } else if (driftResult.unknown) {
+      // Unread is not unchanged: recording now would film against a snapshot
+      // nobody verified. Same halt as drift, exit 3 so it reads as `unknown`.
+      console.log('\n❓ [DRIFT UNKNOWN] These could not be read, so they were not compared:');
+      console.log(formatUnreadable(driftResult));
+      if (!ignoreDocDrift) {
+        console.log('⚠️ Halting: re-run when the docs are reachable, or pass `--ignore-doc-drift`.');
+        generateReport(reportData);
+        process.exit(3);
       }
       console.log('⚠️ --ignore-doc-drift provided. Proceeding anyway...\n');
     } else {

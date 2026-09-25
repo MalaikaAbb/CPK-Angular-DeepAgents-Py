@@ -26,8 +26,13 @@
  *
  * The fourth argument, `ctx`, is how a handler reports what it saw:
  *
- *   ctx.warn('the documented defect did not reproduce')  -> [PASS*]/[ISSUE] with the note
- *   ctx.fail('Approve button never rendered')             -> [FAIL], clip still saved
+ *   ctx.warn('the card heading was empty')     -> [PASS*] with the note
+ *   ctx.fail('Approve button never rendered')  -> [FAIL], clip still saved
+ *   ctx.reproduced('what was seen')            -> [ISSUE], on a page with a knownIssue
+ *
+ * A page with a `knownIssue` is [ISSUE] only if its handler calls
+ * `ctx.reproduced` with what it saw. Otherwise it is [PASS*] with "KNOWN ISSUE
+ * NOT REPRODUCED". Its scratch note should say what the take saw, too.
  *
  * A `console.warn` reaches nobody: the summary, RECORD_RESULTS.json and the
  * daily report only see what goes through `ctx`.

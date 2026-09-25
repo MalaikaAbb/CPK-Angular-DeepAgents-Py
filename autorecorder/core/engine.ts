@@ -5,7 +5,7 @@ import { executePageAction } from '../actions';
 import { AgentSilentError } from './actions';
 import { diagnoseError } from './diagnostics';
 import { SELECTORS } from '../config/selectors.config';
-import { captureConsole, type ConsoleEntry } from './console-capture';
+import { breakingErrors, captureConsole, type ConsoleEntry } from './console-capture';
 import { buildFailureEvidence, snapshotLogOffsets, writeFailureLog, type LogSource } from './failure-evidence';
 import { generateIdeHtml, type IdeTabConfig } from './ide/generator';
 import { humanClick, humanGlide, humanScrollDown, restCursorSomewhere, sleep } from './overlays/cursor';
@@ -207,12 +207,15 @@ const IDE_ROUTE_PATH = '/__autorecord_ide__';
 /**
  * What a take is worth.
  *
- * `pass`  -- every step completed and nothing was expected to go wrong.
- * `issue` -- the page declares a `knownIssue`; the clip documents a defect on
- *            purpose, so it is not a pipeline failure.
- * `fail`  -- something broke that is this repo's problem: a 404, a demo with no
- *            chat surface, an IDE view that could not be built, or a handler
- *            that reported the feature did not work.
+ * `pass`  -- every step completed and nothing was expected to go wrong. A page
+ *            whose `knownIssue` did not reproduce is also `pass`, with a
+ *            warning saying so: the defect may be fixed.
+ * `issue` -- the page declares a `knownIssue` AND its handler observed it
+ *            (`ctx.reproduced`). The clip documents the defect on purpose.
+ * `fail`  -- the take broke or the feature did not work: a 404, a demo with no
+ *            chat surface, an IDE view that could not be built, a handler
+ *            `ctx.fail`, or the app throwing (see `breakingErrors`) on a page
+ *            where no reproduced `knownIssue` accounts for it.
  */
 export type RecordOutcome = 'pass' | 'issue' | 'fail';
 
@@ -225,6 +228,8 @@ export interface RecordResult {
   warnings: string[];
   /** Browser console errors seen during the take, deduplicated. */
   consoleErrors?: string[];
+  /** What the handler saw of the page's `knownIssue`, via `ctx.reproduced`. */
+  reproduced?: string[];
 }
 
 /**
@@ -630,6 +635,7 @@ export class RecordingEngine {
     // the end so the clip still shows the failure, and the verdict is applied
     // once the handler returns.
     const actionFailures: string[] = [];
+    const reproduced: string[] = [];
     const ctx: ActionContext = {
       warn: (message) => {
         warnings.push(message);
@@ -638,6 +644,10 @@ export class RecordingEngine {
       fail: (message) => {
         actionFailures.push(message);
         console.error(`   ❌ ${message}`);
+      },
+      reproduced: (evidence) => {
+        reproduced.push(evidence);
+        console.log(`   🐞 Known issue observed: ${evidence}`);
       },
       timeouts,
     };
@@ -773,9 +783,7 @@ export class RecordingEngine {
         // else. Nothing else gets this treatment -- a 404, or a chat surface
         // that never rendered, still fails whether `knownIssue` is set or not.
         if (e instanceof AgentSilentError && config.knownIssue?.expectsNoResponse) {
-          const msg = `Documented defect reproduced -- the agent never answered. ${config.knownIssue.problem}`;
-          warnings.push(msg);
-          console.log(`\n🐞 [Known issue on ${config.id}]: ${msg}\n`);
+          ctx.reproduced('the agent never answered');
         } else {
           const msg = `Demo step failed: ${diagnoseError(e, config.demoUrl)}`;
           fail(msg);
@@ -791,6 +799,19 @@ export class RecordingEngine {
       console.error(`❌ Recording error for ${config.id}:`, recordError);
     } finally {
       console_?.stop();
+
+      // The app throwing is a failure, not a footnote. It used to become one
+      // warning line, so a page that crashed mid-take still reported PASS*.
+      // The one exception is a page whose declared defect was just observed:
+      // those errors are that defect's evidence, and stay listed below.
+      const breaking = distinctErrors(breakingErrors(console_?.entries ?? []));
+      const explained = Boolean(config.knownIssue) && reproduced.length > 0;
+      if (!recordError && breaking.length > 0 && !explained) {
+        recordError =
+          `The app threw during the take (${breaking.length} distinct error(s)), first: ${breaking[0]}`;
+        recordSuccess = false;
+        console.error(`\n❌ [Page error on ${config.id}]: ${recordError}\n`);
+      }
 
       // A failed take leaves the diagnosed error, the browser console and this
       // page's slice of the server logs in videos/logs/<id>.error.log. Never
@@ -815,16 +836,25 @@ export class RecordingEngine {
       );
     }
 
+    // A clean take that showed its declared defect is an ISSUE, not a PASS: the
+    // clip is good, the feature is not. One that did NOT show it is a PASS with
+    // a warning -- declaring a defect is not evidence of it.
+    const issueSeen = Boolean(config.knownIssue) && reproduced.length > 0;
+    if (recordSuccess && config.knownIssue && !issueSeen) {
+      warnings.push(
+        'KNOWN ISSUE NOT REPRODUCED: this page declares a knownIssue but the take did not observe it. ' +
+          'Re-test by hand; if it is fixed, delete the knownIssue.',
+      );
+    }
+
     return {
       success: recordSuccess,
-      // A clean take of a page that reproduces a defect is an ISSUE, not a
-      // PASS: the clip is good, the feature is not, and the summary has to say
-      // which of those it is looking at.
-      outcome: !recordSuccess ? 'fail' : config.knownIssue ? 'issue' : 'pass',
+      outcome: !recordSuccess ? 'fail' : issueSeen ? 'issue' : 'pass',
       filename: finalSavedFilename,
       error: recordError,
       warnings,
       consoleErrors,
+      reproduced,
     };
   }
 }

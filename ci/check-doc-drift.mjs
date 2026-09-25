@@ -263,6 +263,8 @@ export async function checkAllDocDrift() {
   process.stdout.write('\n\n');
 
   const driftedPages = results.filter((r) => r.drifted);
+  // A page that could not be read (5xx, an HTML soft-404, a timeout) has not
+  // been compared, so it is not "unchanged". These make the verdict `unknown`.
   const errors = results.filter((r) => r.error);
 
   const sitemap = await checkSitemapGaps(manifest);
@@ -276,14 +278,25 @@ export async function checkAllDocDrift() {
     for (const u of sitemap.missingFromSitemap) console.log(`   · not in sitemap: ${u}`);
   }
 
+  const drifted = driftedPages.length > 0 || sitemap.newUnmapped.length > 0;
   return {
     total: entries.length,
     checked: results.length,
-    drifted: driftedPages.length > 0 || sitemap.newUnmapped.length > 0,
+    drifted,
+    // Not drifted, but not verified either: some page or the sitemap could not
+    // be read. Callers must not report this as "all pages match".
+    unknown: !drifted && (errors.length > 0 || Boolean(sitemap.error)),
     driftedPages,
     sitemap,
     errors,
   };
+}
+
+/** One line per page the check could not read, for every caller to print. */
+export function formatUnreadable(result) {
+  const lines = result.errors.map((e) => ` • ${e.docPath}: ${e.error}`);
+  if (result.sitemap?.error) lines.push(` • sitemap.xml: ${result.sitemap.error}`);
+  return lines.join('\n');
 }
 
 // Standalone execution
@@ -339,6 +352,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       }
     }
     console.log('───────────────────────────────────────────────────────────────────────────');
+    if (result.errors.length > 0 || result.sitemap.error) {
+      console.log('❓ Also NOT compared (could not be read):');
+      console.log(formatUnreadable(result));
+    }
 
     if (autoUpdate) {
       console.log('\n🔄 Applying changes to local markdown snapshot files (--update flag)...');
@@ -365,10 +382,17 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   if (result.driftedPages.length === 0) {
     if (result.sitemap.newUnmapped.length > 0) process.exit(2);
-    console.log(`✅ [NO DOC DRIFT] All ${result.total} documentation pages match the local snapshot.`);
-    if (result.errors.length > 0) {
-      console.log(`ℹ️  Note: ${result.errors.length} page(s) could not be fetched due to network timeout.`);
+    // Exit 3, not 0: the workflow reads anything but 0/2 as `unknown`, which
+    // halts a scheduled run instead of recording against an unverified snapshot.
+    if (result.unknown) {
+      console.log(
+        `❓ [DRIFT UNKNOWN] ${result.checked - result.errors.length} of ${result.total} page(s) match; ` +
+          `these could not be read, so they were NOT compared:`,
+      );
+      console.log(formatUnreadable(result));
+      process.exit(3);
     }
+    console.log(`✅ [NO DOC DRIFT] All ${result.total} documentation pages match the local snapshot.`);
     process.exit(0);
   }
 }

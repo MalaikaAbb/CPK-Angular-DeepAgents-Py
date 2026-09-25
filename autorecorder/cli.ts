@@ -28,6 +28,7 @@ export interface PageResult {
   error?: string;
   warnings: string[];
   consoleErrors?: string[];
+  reproduced?: string[];
 }
 
 /**
@@ -110,6 +111,7 @@ function writeResultsFile(results: PageResult[], shard: string | null): string {
       error: r.error ?? null,
       warnings: r.warnings,
       consoleErrors: r.consoleErrors ?? [],
+      reproduced: r.reproduced ?? [],
       knownIssue: page?.knownIssue ?? null,
     };
   });
@@ -328,6 +330,7 @@ async function main(): Promise<void> {
       error: res.error,
       warnings: res.warnings,
       consoleErrors: res.consoleErrors,
+      reproduced: res.reproduced,
     });
   }
 
@@ -366,6 +369,7 @@ async function main(): Promise<void> {
           ? '⚠️  [PASS*]'
           : '✅ [PASS] ';
     console.log(`   ${badge} (${r.durationSec}s) ${r.name} -> ${r.filename}`);
+    for (const e of r.reproduced ?? []) console.log(`        🐞 seen: ${e}`);
     for (const w of r.warnings) console.log(`        · ${w}`);
   }
   console.log(`======================================================`);

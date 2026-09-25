@@ -48,3 +48,13 @@ them framework-specific, all of them **owed to the sibling repos**:
 
 `ADAPT.md` Step 5b documents the contract. If you are reading this while porting
 somewhere else, these are already yours to use.
+
+Two later changes tighten those verdicts, and are **also owed to the siblings**:
+
+- `types.ts` / `engine.ts`: `ctx.reproduced(evidence)`. A `knownIssue` page is
+  `[ISSUE]` only when its handler saw the defect; otherwise it is `[PASS*]` with
+  "KNOWN ISSUE NOT REPRODUCED". Handlers with a `knownIssue` must call it.
+- `console-capture.ts` / `engine.ts`: `breakingErrors`. An uncaught exception,
+  Angular's `ERROR`/`NG0xxx`, or a failed request to a localhost harness server
+  now FAILs the take unless a reproduced `knownIssue` accounts for it. React
+  repos should also drop `Hydration failed` from `IGNORED` when porting.

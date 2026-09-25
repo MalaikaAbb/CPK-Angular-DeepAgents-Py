@@ -159,9 +159,10 @@ jobs:
           set -e
           cat drift.txt
 
-          # check-doc-drift.mjs exits 2 on drift and 0 when clean. Anything else
-          # is the checker itself failing -- docs site unreachable, parse error --
-          # which means drift is UNKNOWN, not absent. Treating that as "clean"
+          # check-doc-drift.mjs exits 2 on drift, 0 when clean, and 3 when some
+          # page or the sitemap could not be read. Anything else is the checker
+          # itself failing -- a parse error, a crash. Both mean drift is UNKNOWN,
+          # not absent. Treating that as "clean"
           # would record straight through a real change on any morning the docs
           # host has a blip.
           if [ "$CODE" = "2" ]; then
@@ -181,6 +182,7 @@ jobs:
             case "$CODE" in
               0) echo "**Clean.** The live docs match the committed snapshot." ;;
               2) echo "**Drifted.** The live docs moved. Recording is halted." ;;
+              3) echo "**Unknown.** Some doc pages could not be read, so they were not compared. Drift is unknown, not absent." ;;
               *) echo "**Unknown.** The drift checker exited $CODE -- it could not read the docs. Drift is unknown, not absent." ;;
             esac
             echo
@@ -268,7 +270,11 @@ jobs:
           elif [ "$GATING" = "true" ]; then
             echo "should_record=false" >> "$GITHUB_OUTPUT"
             echo "gated=true" >> "$GITHUB_OUTPUT"
-            echo "> **Pipeline stopped at stage 1.** The docs moved; recording skipped and an issue filed." >> "$GITHUB_STEP_SUMMARY"
+            if [ "$STATE" = "drift" ]; then
+              echo "> **Pipeline stopped at stage 1.** The docs moved; recording skipped and an issue filed." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "> **Pipeline stopped at stage 1.** Drift is unknown (docs unreadable); recording skipped." >> "$GITHUB_STEP_SUMMARY"
+            fi
           else
             echo "should_record=true" >> "$GITHUB_OUTPUT"
             echo "gated=false" >> "$GITHUB_OUTPUT"

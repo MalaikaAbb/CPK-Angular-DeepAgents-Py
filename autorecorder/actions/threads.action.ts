@@ -40,9 +40,35 @@ async function clickIfPresent(page: Page, selector: string, label: string): Prom
   return true;
 }
 
+/**
+ * The published custom list's bare `<button>`s, laid out: how many share a row
+ * with the first. More than one means "New conversation" and the thread names
+ * run together on one line, which is the visible half of the knownIssue.
+ */
+async function buttonsOnFirstRow(page: Page): Promise<{ total: number; onFirstRow: number; text: string }> {
+  return page
+    .evaluate(() => {
+      const list = document.querySelector('app-thread-list');
+      const btns = Array.from(list?.querySelectorAll('button') ?? []).filter(
+        (b) => (b as HTMLElement).offsetParent !== null,
+      );
+      if (btns.length === 0) return { total: 0, onFirstRow: 0, text: '' };
+      const top = btns[0].getBoundingClientRect().top;
+      const onFirstRow = btns.filter((b) => Math.abs(b.getBoundingClientRect().top - top) < 4).length;
+      return {
+        total: btns.length,
+        onFirstRow,
+        text: ((list as HTMLElement).innerText || '').replace(/\s+/g, ' ').trim(),
+      };
+    })
+    .catch(() => ({ total: 0, onFirstRow: 0, text: '' }));
+}
+
 export const runThreadsAction: PageActionHandler = async (
   page: Page,
   config: PageRecordConfig,
+  _rootPath,
+  ctx,
 ) => {
   const list = page.locator('app-thread-list').first();
   await list.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
@@ -102,5 +128,16 @@ export const runThreadsAction: PageActionHandler = async (
   if (listBox) {
     await humanGlide(page, listBox.x + Math.min(listBox.width / 2, 160), listBox.y + 20, 22);
     await beat(2400);
+  }
+
+  // The Intelligence half of the knownIssue cannot show here: server.ts passes
+  // `intelligence`. The run-together list can, once it holds a thread.
+  const layout = await buttonsOnFirstRow(page);
+  if (layout.onFirstRow > 1) {
+    ctx.reproduced(
+      `the custom list renders ${layout.onFirstRow} of ${layout.total} buttons on one line: "${layout.text.slice(0, 80)}"`,
+    );
+  } else if (layout.total < 2) {
+    ctx.warn('the custom list held fewer than two buttons, so the run-together layout could not be checked.');
   }
 };

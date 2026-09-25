@@ -34,6 +34,9 @@ function checkCast(spec: CastSpec, ctx: ActionContext): boolean {
   }
   const fresh = castIsFresh(spec.file, spec.sources);
   if (!fresh.fresh) ctx.warn(`captured output may be stale (${fresh.reason}); re-run \`npm run capture:casts\``);
+  // Evidence from a capture, not from this run's build: the stale warning
+  // above is what says how much to trust it.
+  ctx.reproduced(`captured build output ${spec.file} matches ${spec.expect}`);
   return true;
 }
 

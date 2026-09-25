@@ -14,6 +14,20 @@ import { promptsFor, sendPrompt, waitForAgentResponseCompletion } from '../core/
 import { beat, humanClick, humanGlide, sleep } from '../core/overlays/cursor';
 import { type PageActionHandler, type PageRecordConfig } from '../core/types';
 
+import { excerpt, latestReplyText } from './reply-text';
+
+/**
+ * Did the agent see what the UI set? A reply that does not name the value is
+ * the knownIssue ("the agent is blind to them"); one that does means state or
+ * context reached the model this turn. Matching is loose on purpose -- it is
+ * the value's presence that matters, not the phrasing.
+ */
+const EXPECTED = {
+  high: /\bhigh\b/i,
+  low: /\blow\b/i,
+  london: /london|europe\/london|\bgmt\b|\bbst\b|greenwich|british summer/i,
+};
+
 export const runSharedStateAction: PageActionHandler = async (
   page: Page,
   config: PageRecordConfig,
@@ -43,9 +57,19 @@ export const runSharedStateAction: PageActionHandler = async (
     ctx.warn('"Mark high priority" button not found -- turn 1 asked about state nothing had set.');
   }
 
+  // Each turn's verdict, reported once the take is over.
+  const blind: string[] = [];
+  const check = async (label: string, set: boolean, expected: RegExp) => {
+    if (!set) return; // nothing was set, so the reply proves nothing either way
+    const reply = await latestReplyText(page);
+    if (!expected.test(reply)) blind.push(`${label}: "${excerpt(reply, 90)}"`);
+    else console.log(`   ✅ ${label} reached the agent.`);
+  };
+
   console.log(`   💬 Turn 1: ${highPrompt}`);
   const count1 = await sendPrompt(page, highPrompt);
   await waitForAgentResponseCompletion(page, wait, count1);
+  await check('state priority=high', Boolean(highBox), EXPECTED.high);
   await beat(1000);
 
   // ── Turn 2: Mark Low Priority ──────────────────────────────────────────────
@@ -67,6 +91,7 @@ export const runSharedStateAction: PageActionHandler = async (
   console.log(`   💬 Turn 2: ${lowPrompt}`);
   const count2 = await sendPrompt(page, lowPrompt);
   await waitForAgentResponseCompletion(page, wait, count2);
+  await check('state priority=low', Boolean(lowBox), EXPECTED.low);
   await beat(1000);
 
   // ── Turn 3: Timezone Context ───────────────────────────────────────────────
@@ -87,6 +112,11 @@ export const runSharedStateAction: PageActionHandler = async (
   console.log(`   💬 Turn 3: ${tzPrompt}`);
   const count3 = await sendPrompt(page, tzPrompt);
   await waitForAgentResponseCompletion(page, wait, count3);
+  await check('context timezone=London', Boolean(tzBox), EXPECTED.london);
+
+  if (blind.length > 0) {
+    ctx.reproduced(`agent did not reflect what the UI set -- ${blind.join('; ')}`);
+  }
 
   // Rest on the context & state panel
   const accountContext = page.locator('app-account-context').first();

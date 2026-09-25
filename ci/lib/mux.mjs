@@ -52,6 +52,34 @@ const AUDIO_TRACKS = [
   // the clip stays silent.
 ];
 
+/**
+ * Per-clip results from RECORD_RESULTS*.json, keyed by video filename.
+ *
+ * All three tracks narrate a defect as well as the feature, so a track goes on
+ * a clip only when that take was `[ISSUE]` with evidence (`reproduced`). This
+ * ran unconditionally before -- even from `finally` after a run that recorded
+ * nothing, re-narrating an old clip -- so the voiceover asserted a defect the
+ * take may not have shown.
+ */
+function resultsByFilename() {
+  const byFile = new Map();
+  let files = [];
+  try {
+    files = fs.readdirSync(VIDEOS_DIR).filter((f) => /^RECORD_RESULTS.*\.json$/.test(f));
+  } catch {
+    return byFile;
+  }
+  for (const f of files) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(path.join(VIDEOS_DIR, f), 'utf8'));
+      for (const r of parsed.results ?? []) if (r.filename) byFile.set(r.filename, r);
+    } catch {
+      // unreadable results file: its clips get no narration
+    }
+  }
+  return byFile;
+}
+
 function hasFfmpeg() {
   try {
     execSync('ffmpeg -version', { stdio: 'ignore' });
@@ -72,6 +100,7 @@ export function muxAudioFiles() {
   }
 
   const files = fs.readdirSync(VIDEOS_DIR);
+  const results = resultsByFilename();
 
   for (const track of tracks) {
     const audioPath = path.join(AUDIO_DIR, track.audioFile);
@@ -81,6 +110,15 @@ export function muxAudioFiles() {
 
     if (!video) {
       console.log(`ℹ️ [Audio Mux] No ${track.videoMatch} video in this run; skipping ${track.audioFile}.`);
+      continue;
+    }
+
+    const result = results.get(video);
+    if (!(result?.outcome === 'issue' && result.reproduced?.length > 0)) {
+      console.log(
+        `ℹ️ [Audio Mux] ${video}: take was ${result?.outcome ?? 'not in RECORD_RESULTS'} without an observed ` +
+          `defect; not narrating it with ${track.audioFile}.`,
+      );
       continue;
     }
 

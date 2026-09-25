@@ -35,7 +35,7 @@ export interface KnownIssue {
   /**
    * Set when the defect is that the agent never answers at all. Without it,
    * agent silence is a recording failure; with it, silence is the finding and
-   * the take still reports `[ISSUE]`.
+   * the take reports `[ISSUE]` (silence counts as `ctx.reproduced`).
    */
   expectsNoResponse?: boolean;
 }
@@ -190,6 +190,13 @@ export interface ActionContext {
   warn: (message: string) => void;
   /** The feature under test did not work. The recording finishes, then fails. */
   fail: (message: string) => void;
+  /**
+   * The page's declared `knownIssue` was observed in this take, with what was
+   * seen. A page with a `knownIssue` is `[ISSUE]` only if its handler calls
+   * this; otherwise the defect did not reproduce and the take says so. Without
+   * it, a fixed defect kept reporting `[ISSUE]` forever.
+   */
+  reproduced: (evidence: string) => void;
   /** Resolved timeouts for this page. */
   timeouts: RecorderTimeouts;
 }
