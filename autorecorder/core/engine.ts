@@ -655,8 +655,8 @@ export class RecordingEngine {
     const { browser, context, page } = await this.openStage(config.docUrl);
 
     // Console errors, page errors and failed backend requests, kept rather than
-    // printed and forgotten. They go on the result so the summary and the CI
-    // report can show them next to the clip they belong to. Started at the
+    // printed and forgotten. They go on the result so the summary and
+    // RECORD_RESULTS.json can show them next to the clip they belong to. Started at the
     // demo step, not here: the doc site's own console is not under test, and
     // it logs a dozen hydration errors of its own on every load.
     let console_: ReturnType<typeof captureConsole> | undefined;

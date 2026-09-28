@@ -3,8 +3,8 @@
  *
  * `core/issue-note.ts` types the full KnownIssue: Area, Problem, Expected
  * impact, Likely Cause, four paragraphs of finished prose. That object has to
- * stay formal because `ci/build-report.mjs` renders it straight into the report
- * a manager reads. But typing it on screen made the recordings look wrong —
+ * stay formal because it is carried verbatim into RECORD_RESULTS.json and the
+ * QA report a manager reads. But typing it on screen made the recordings look wrong —
  * nobody mid-test writes a structured defect report in complete sentences, and
  * watching one appear character by character reads as a machine narrating
  * itself rather than a person noticing something.

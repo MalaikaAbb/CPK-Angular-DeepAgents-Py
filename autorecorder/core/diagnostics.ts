@@ -29,11 +29,9 @@ interface ProbeTarget {
  * host with value [::1]:4230 is not allowed"), which is a *response* and would
  * otherwise read as healthy.
  *
- * `ci/automate.mjs` has carried this in its own waits for some time. This
- * pre-flight did not, so on 2026-09-21 an Agno-angular shard whose frontend
- * answered only on `[::1]` aborted before launching a browser and filmed
- * nothing, while the consolidate step still reported green over 6 clips
- * instead of 9.
+ * This pre-flight used to try only the name, so on 2026-09-21 an Agno-angular
+ * run whose frontend answered only on `[::1]` aborted before launching a
+ * browser and filmed nothing.
  *
  * Non-localhost URLs are returned untouched: 127.0.0.1 needs no help.
  */

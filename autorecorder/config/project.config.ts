@@ -128,8 +128,7 @@ export const PROJECT: ProjectConfig = {
   // `--no-reload` is not optional here, and it cost a run to learn. `langgraph
   // dev` hot-reloads on any change under the repo, and the recorder writes into
   // the repo while it works -- frontend/VERSIONS.md before every doctor run,
-  // clips and RECORD_RESULTS.json into autorecorder/videos/. The watcher sees
-  // those, reloads, and eventually exits mid-suite, which surfaces as pages
+  // clips and RECORD_RESULTS.json into autorecorder/videos/. The watcher sees those, reloads, and eventually exits mid-suite, which surfaces as pages
   // failing with "the agent never replied" for no visible reason.
   backendStartCmd:
     'cd backend && uv run --with "langgraph-cli[inmem]" langgraph dev --port 8231 --no-browser --no-reload',

@@ -47,9 +47,9 @@ cd frontend && npm run dev
 ```
 
 **`--no-reload` is not optional**, and it cost a run to learn. `langgraph dev`
-hot-reloads on any change under the repo, and the pipeline writes into the repo
-while it runs — `frontend/VERSIONS.md` before recording, then clips, logs and
-`RECORD_RESULTS.json` into `videos/`. The watcher sees those, reloads
+hot-reloads on any change under the repo, and the recorder writes into the repo
+while it runs — `frontend/VERSIONS.md` (from `scripts/write-versions.mjs`, run by
+`npm run doctor`), then clips, logs and `RECORD_RESULTS.json` into `videos/`. The watcher sees those, reloads
 repeatedly, and eventually exits mid-suite, which surfaces as later pages failing
 with "the agent never replied" and no other clue.
 
@@ -74,9 +74,6 @@ npm run record -- --pages=issues   # just the pages with known defects
 npm run record            # all pages, in order
 ```
 
-Or drive the whole thing — servers, installs, drift check, report — from the
-repo root with `npm run automate`. See [`ci/README.md`](../ci/README.md).
-
 | Flag | Effect |
 |---|---|
 | `--list`, `--help` | Print every registered route and exit |
@@ -91,8 +88,7 @@ repo root with `npm run automate`. See [`ci/README.md`](../ci/README.md).
 
 Videos land in `videos/` as `<videoPrefix>-<NN>-<name>.webm`, 1920×1080, ~25fps
 (Playwright's capture rate; it is not configurable). Per-page outcomes land
-beside them in `RECORD_RESULTS.json`, which is what `ci/build-report.mjs` turns
-into the QA report.
+beside them in `RECORD_RESULTS.json`, which is what a QA report is built from.
 
 **`videos/` is gitignored on purpose.** Recordings are build output — reproducible
 from this folder plus `npm run record` — and committing them is expensive: 17 clips
@@ -126,8 +122,8 @@ history had to be rewritten. Publish them as release assets or to a bucket.
   handler reported that the feature did not work (`ctx.fail`). The clip is still
   saved as evidence.
 
-Only **FAIL** sets a non-zero exit code, so CI can be gated on it while five
-documented defects record every night without turning the pipeline red.
+Only **FAIL** sets a non-zero exit code, so five documented defects can be
+recorded on every run without the run itself reporting failure.
 
 ---
 
@@ -149,7 +145,7 @@ That one object does three jobs, which is the whole point of it existing:
 1. it flips the take's outcome to `[ISSUE]`,
 2. it is typed into a simulated Notepad window at the end of the clip, over the
    still-visible failure, so the video carries its own report, and
-3. `ci/build-report.mjs` renders it into `DOCUMENTED_REPORT.md`.
+3. it is written into `RECORD_RESULTS.json` next to the take's outcome.
 
 The sentence on screen and the row that reaches a manager are the same string.
 There is no second place to update, so there is no second place to forget.
@@ -209,8 +205,7 @@ errors, and this page's slice of `videos/logs/backend.log` and
 to `videos/logs/<page-id>.error.log`. Each section is windowed around the
 line most worth reading (a traceback, an `Error`, a 4xx/5xx) and that line
 is marked `>>`, so an agent can diagnose from the log without re-running
-anything locally. CI uploads the file with the run (the shard upload glob
-covers `videos/logs/*.log`).
+anything.
 
 The recorders with a CLI pipeline also replay the same text in their
 simulated terminal window at the end of the clip. This recorder has no
@@ -276,7 +271,7 @@ autorecorder/
 
 Every pace in a take comes from `core/overlays/human.ts`, seeded from the
 page id. So two clips do not type, pause and scroll in the same rhythm — but
-tonight's take of a page is identical to last night's, which keeps two
+today's take of a page is identical to yesterday's, which keeps two
 recordings of the same defect comparable.
 
 - **Typing** has a person's rhythm: jittered keystrokes, a beat after
@@ -286,7 +281,7 @@ recordings of the same defect comparable.
 - **Scrolling** is in bursts: a few wheel notches, a reading pause, a few more,
   sometimes a nudge back up.
 - **Pauses** vary by about a quarter around their nominal length. They are
-  the only thing `AUTORECORD_PACE` scales (CI sets `0.85`): a reading or
+  the only thing `AUTORECORD_PACE` scales (e.g. `0.85`): a reading or
   thinking pause gets shorter, the typing, the mouse and the scrolling do not.
 - **The cursor** overshoots slightly on long travel and settles, hovers a
   variable moment before a click, drifts while a reply streams instead of

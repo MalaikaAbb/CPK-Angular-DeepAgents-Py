@@ -44,7 +44,7 @@ export interface Cast {
   events: CastEvent[];
 }
 
-/** A server log the pipeline writes, and where it stood when this page began. */
+/** A server log under videos/logs/, and where it stood when this page began. */
 export interface LogSource {
   title: string;
   path: string;

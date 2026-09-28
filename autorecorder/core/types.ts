@@ -10,13 +10,13 @@ export { type IdeTabConfig };
  * Some repos exist to document a working integration; this one also exists to
  * document a broken one. A page carrying this is *expected* to misbehave, so
  * the run reports it as `[ISSUE]` rather than `[FAIL]` and the process still
- * exits 0 -- a pipeline that is red every night for seven known defects is a
- * pipeline nobody reads. What still fails is a route that 404s, a demo that
+ * exits 0 -- a run that fails every time for seven known defects is a run
+ * nobody reads. What still fails is a route that 404s, a demo that
  * renders no chat surface, or an IDE view that cannot be built: those are
  * breaks in this repo, not in the thing under test.
  *
  * The fields are the QA report's own fields, so the note the recorder types
- * into Notepad on screen and the row that ends up in the daily report are the
+ * into Notepad on screen and the row that ends up in the QA report are the
  * same text, written once.
  */
 export interface KnownIssue {
@@ -84,7 +84,7 @@ export interface PageDefinition {
 
   /**
    * The defect this page reproduces, when it reproduces one. Presence flips the
-   * take's outcome to `[ISSUE]` and is what the daily report generator reads.
+   * take's outcome to `[ISSUE]` and is carried into RECORD_RESULTS.json.
    */
   knownIssue?: KnownIssue;
 
@@ -177,11 +177,11 @@ export function definePages(defs: PageDefinition[]): PageRecordConfig[] {
 }
 
 /**
- * How a page handler reports what it saw, so the summary and CI see it too.
+ * How a page handler reports what it saw, so the summary and results see it too.
  *
  * Before this, a handler that noticed "the weather card never rendered" could
  * only `console.warn` it. The run still printed `[PASS]` with no asterisk, and
- * the CI report carried nothing. `warn` puts the note on the result as `PASS*`;
+ * RECORD_RESULTS.json carried nothing. `warn` puts the note on the result as `PASS*`;
  * `fail` marks the recording failed once the handler returns, so the clip is
  * still filmed to the end and still saved as evidence.
  */

@@ -156,13 +156,13 @@ Three consequences, and it is worth knowing all three before adding one:
 
 1. When the handler observes the defect and calls `ctx.reproduced(evidence)`,
    the run reports `[ISSUE]` rather than `[PASS]`, and does **not** set a
-   non-zero exit code. Documented defects must not turn a nightly pipeline red;
-   a pipeline that is red every night is one nobody reads. When it does not,
+   non-zero exit code. Documented defects must not make every run fail; a run
+   that always fails is one nobody reads. When it does not,
    the take is `[PASS*]` with "KNOWN ISSUE NOT REPRODUCED".
 2. `writeIssueNote()` types the four fields into a simulated Notepad at the end
    of the take, over the still-visible failure.
-3. Anything downstream — here, `ci/build-report.mjs` — renders the same object
-   into the report that gets sent on.
+3. The same object is written into `RECORD_RESULTS.json`, which is what the
+   report that gets sent on is built from.
 
 `[ISSUE]` means "this page is on the known-issues list and the handler saw the
 defect this take", and the result carries what it saw. It is only as good as

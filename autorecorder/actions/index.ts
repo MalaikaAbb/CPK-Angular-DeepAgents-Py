@@ -34,16 +34,16 @@
  * `ctx.reproduced` with what it saw. Otherwise it is [PASS*] with "KNOWN ISSUE
  * NOT REPRODUCED". Its scratch note should say what the take saw, too.
  *
- * A `console.warn` reaches nobody: the summary, RECORD_RESULTS.json and the
- * daily report only see what goes through `ctx`.
+ * A `console.warn` reaches nobody: the summary and RECORD_RESULTS.json only
+ * see what goes through `ctx`.
  *
  * ── The four issue handlers ────────────────────────────────────────────────
  * `a2ui`, `voice-multimodal`, `threads` and `memory` carry a `knownIssue` in
  * pages.config.ts and their handlers exist to make the defect *visible*: an
  * absence looks identical to a slow page on video unless something on screen
  * says otherwise. Each ends by jotting a short informal note with
- * `writeScratchNote` -- the formal KnownIssue still goes to the report via
- * `ci/build-report.mjs`, but a person mid-test does not type finished prose,
+ * `writeScratchNote` -- the formal KnownIssue still goes into
+ * RECORD_RESULTS.json, but a person mid-test does not type finished prose,
  * so the two were deliberately decoupled. See `actions/scratch-note.ts`.
  *
  * They also all tolerate agent silence rather than letting it abort the take —

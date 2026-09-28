@@ -149,7 +149,7 @@ function checkSelectors(problems: Problem[]): void {
 /**
  * A `knownIssue` has to be filable, and it has to be filmable.
  *
- * Filable: every field ends up verbatim in the daily report, so an empty one is
+ * Filable: every field ends up verbatim in the QA report, so an empty one is
  * a blank cell in something sent to a manager.
  *
  * Filmable: a page carrying an issue but falling through to `runStandardAction`
@@ -172,7 +172,7 @@ function checkKnownIssue(
       problems.push({
         scope,
         severity: 'error',
-        message: `knownIssue.${field} is empty -- it is copied verbatim into the daily report`,
+        message: `knownIssue.${field} is empty -- it is copied verbatim into the QA report`,
       });
     }
   }

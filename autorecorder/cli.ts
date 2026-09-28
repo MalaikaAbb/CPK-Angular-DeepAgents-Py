@@ -1,5 +1,5 @@
 /**
- * Automated Screen Recording & Demonstration Pipeline
+ * Screen Recording & Demonstration Runner
  * Entrypoint & CLI runner
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -12,7 +12,7 @@ import { checkServicesHealth } from './core/diagnostics';
 import { RecordingEngine, type RecordOutcome } from './core/engine';
 import { runDoctor } from './core/doctor';
 import { prewarmDemoRoutes } from './core/prewarm';
-import { parseShard, selectPages } from './core/select';
+import { selectPages } from './core/select';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -67,31 +67,27 @@ async function assertServicesUp(force: boolean): Promise<void> {
  * Per-page outcomes, on disk, for anything downstream that has to say what this
  * run found.
  *
- * The console summary is for a person watching the run; this is for
- * `ci/build-report.mjs`, which turns it into the daily QA report. It is written
- * here rather than reconstructed later because the recorder is the only thing
- * that knows *why* a page passed -- a .webm on disk cannot tell you whether it
- * shows a feature working or a defect reproducing.
- *
- * Sharded runs each write their own file. The name carries the shard so three
- * workers' artifacts unpack into one folder without overwriting each other,
- * which is exactly what the consolidate job does.
+ * The console summary is for a person watching the run; this is for anything
+ * that reads the results afterwards, such as a QA report. It is written here
+ * rather than reconstructed later because the recorder is the only thing that
+ * knows *why* a page passed -- a .webm on disk cannot tell you whether it shows
+ * a feature working or a defect reproducing.
  *
  * ── Why this merges instead of overwriting ─────────────────────────────────
  * Re-recording one page after fixing it is the single most common thing anyone
  * does here. Written as a plain overwrite, that dropped the other fourteen
- * pages from the file, and the next `ci/build-report.mjs` produced a QA report
- * claiming one page had been tested -- a document that is wrong in the one
+ * pages from the file, and the next report built from it claimed one page
+ * had been tested -- a document that is wrong in the one
  * direction that matters, and wrong silently.
  *
  * So results merge by page id, newest wins, and every entry carries its own
  * `recordedAt`. Nothing is ever lost by re-recording, and the report can say
  * which rows are from today and which are older.
  */
-function writeResultsFile(results: PageResult[], shard: string | null): string {
+function writeResultsFile(results: PageResult[]): string {
   mkdirSync(VIDEOS_DIR, { recursive: true });
 
-  const name = shard ? `RECORD_RESULTS.shard-${shard}.json` : 'RECORD_RESULTS.json';
+  const name = 'RECORD_RESULTS.json';
   const target = join(VIDEOS_DIR, name);
   const recordedAt = new Date().toISOString();
 
@@ -144,7 +140,6 @@ function writeResultsFile(results: PageResult[], shard: string | null): string {
     project: PROJECT.videoPrefix,
     framework: PROJECT.framework,
     frameworkLabel: PROJECT.frameworkLabel,
-    shard,
     results: merged,
   };
 
@@ -164,7 +159,6 @@ Selection (default: every page, in nav order)
   --filter=<text>            pages whose id or name contains the text
   <word> [<word> ...]        same as --filter, for each word
   --limit=<n>                first n of the selection (--first=, --count=)
-  --shard=<k>/<n>            slice k of n, for matrix workers
 
 Options
   --list, -l                 print every registered page and exit
@@ -173,7 +167,7 @@ Options
   --force                    record even if the pre-flight health check fails
   --help, -h                 this text
 
-Results merge into videos/RECORD_RESULTS.json (per shard when sharded); the
+Results merge into videos/RECORD_RESULTS.json; the
 process exits 1 only if a page FAILED -- a documented [ISSUE] exits 0.
 `);
 }
@@ -209,7 +203,6 @@ const OPTIONS = {
   limit: { type: 'string' },
   first: { type: 'string' },
   count: { type: 'string' },
-  shard: { type: 'string' },
 } as const;
 
 async function main(): Promise<void> {
@@ -255,15 +248,10 @@ async function main(): Promise<void> {
 
   const limitRaw = values.limit ?? values.first ?? values.count;
   const limit = limitRaw ? Number.parseInt(String(limitRaw), 10) : undefined;
-  const shard = parseShard(values.shard ? String(values.shard) : undefined);
-  if (values.shard && !shard) {
-    console.error(`❌ --shard expects K/N, got "${values.shard}"`);
-    process.exit(1);
-  }
 
   // `--pages=issues` means every page carrying a knownIssue. It is resolved
   // from the registry rather than written out anywhere, because "re-record
-  // the broken ones" is the daily selection here and a hand-maintained copy
+  // the broken ones" is the usual selection here and a hand-maintained copy
   // of that list would be wrong the first time a defect was fixed.
   const idList = values.pages ?? values.only;
   let ids = idList ? String(idList).split(',').map((s) => s.trim()).filter(Boolean) : undefined;
@@ -273,28 +261,15 @@ async function main(): Promise<void> {
     console.log(`\n🐞 [--pages=issues] ${issueIds.length} page(s) with a known issue.`);
   }
 
-  const { pages: targetPages, shard: applied } = selectPages(PAGES, {
+  const { pages: targetPages } = selectPages(PAGES, {
     ids,
     page: values.page ? String(values.page) : pageWord,
     filter: values.filter ? String(values.filter) : undefined,
     queries,
     limit: limit && Number.isFinite(limit) ? limit : undefined,
-    shard,
   });
 
-  if (applied) {
-    console.log(
-      `\n🧩 [Matrix Sharding]: Worker Shard ${applied.index}/${applied.total} -> Recording ${targetPages.length} pages (positions ${applied.positions.join(', ')})`,
-    );
-  }
-
   if (targetPages.length === 0) {
-    // A shard with nothing to do is normal when there are fewer pages than
-    // workers; failing it would fail the matrix for no reason.
-    if (applied) {
-      console.log(`\nℹ️ [Matrix Sharding]: No pages assigned to this worker shard. Exiting cleanly.`);
-      process.exit(0);
-    }
     console.error(`❌ No matching page found for: ${rawArgs.join(' ') || '(nothing)'}`);
     console.log(`Available page IDs: ${PAGES.map((p) => p.id).join(', ')}`);
     console.log(`Tip: run \`npm run record -- --list\` to view all routes.`);
@@ -334,8 +309,7 @@ async function main(): Promise<void> {
     });
   }
 
-  const shardId = shard ? `${shard.index}-${shard.total}` : null;
-  const resultsPath = writeResultsFile(results, shardId);
+  const resultsPath = writeResultsFile(results);
 
   await engine.shutdown();
 
@@ -383,8 +357,7 @@ async function main(): Promise<void> {
   console.log(`📄 Per-page outcomes: ${resultsPath}\n`);
 
   // Known issues deliberately do not gate: seven documented defects would make
-  // this pipeline red every night, and a pipeline that is always red is one
-  // nobody reads. What gates is a break in this repo -- or a page that stopped
+  // every run fail, and a run that always fails is one nobody reads. What gates is a break in this repo -- or a page that stopped
   // reproducing its issue, which shows up as an unexpected [PASS] to be chased.
   if (failedCount > 0) {
     process.exit(1);

@@ -197,7 +197,7 @@ Commit `doc-snapshot/` — `pages/`, `manifest.json` and `CHANGELOG.md` are the 
 
 ### Shared Angular pages in the sitemap (since 2026-09-23)
 
-On 2026-09-23 upstream's sitemap began listing the shared Angular pages once, framework-less, under `/angular/*` instead of once per framework under `/angular/deepagents/*`. `ci/check-doc-drift.mjs` now maps each of those onto `/angular/deepagents/<path>` (every one answers 200 there). That surfaced 47 shared pages this harness has never tracked (backend/*, deploy/*, intelligence/*, troubleshooting/*, webmcp, features, telemetry, …), including the new `intelligence/plans`, `intelligence/analytics` and `intelligence/channels`. All 47 are acknowledged in `sitemap.knownUnmapped` in `doc-snapshot/manifest.json`: reference-only, not recordable, untracked. Coverage is identical to before the sitemap restructure.
+On 2026-09-23 upstream's sitemap began listing the shared Angular pages once, framework-less, under `/angular/*` instead of once per framework under `/angular/deepagents/*` (every one still answers 200 at `/angular/deepagents/<path>`). That surfaced 47 shared pages this harness has never tracked (backend/*, deploy/*, intelligence/*, troubleshooting/*, webmcp, features, telemetry, …), including the new `intelligence/plans`, `intelligence/analytics` and `intelligence/channels`. All 47 are acknowledged in `sitemap.knownUnmapped` in `doc-snapshot/manifest.json`: reference-only, not recordable, untracked. Coverage is identical to before the sitemap restructure.
 
 ---
 
@@ -219,30 +219,27 @@ On 2026-09-23 upstream's sitemap began listing the shared Angular pages once, fr
 
 Moved to [FINDINGS.md](FINDINGS.md).
 
-## Recording and CI
+## Recording
 
-`autorecorder/` produces one demo video per doc page; `ci/` builds, starts,
-checks and records the whole stack in one process, then turns the result into the
-QA report that gets sent on.
+`autorecorder/` produces one demo video per doc page, and records each page's
+outcome in `autorecorder/videos/RECORD_RESULTS.json`.
 
 ```bash
 npm run record:doctor:online   # is the configuration sane, against live URLs?
 npm run record:list            # what will be recorded
 npm run record -- --a2ui       # one page
 npm run record:issues          # only the pages with a known defect
-npm run automate               # the full pipeline: drift → preflight → deps → servers → record
-npm run report                 # DOCUMENTED_REPORT.md, from the run's own results
 ```
 
 The recorder refuses to start unless all three services are up. Start them with
 the commands in *Run* above — and note that the backend needs **`--no-reload`**:
-`langgraph dev` watches the repo, the pipeline writes into the repo while it
+`langgraph dev` watches the repo, the recorder writes into the repo while it
 runs, and the resulting reload loop kills the server mid-suite.
 
 **Known issues are not failures.** A page carrying a `knownIssue` in
 `autorecorder/config/pages.config.ts` records as `[ISSUE]` and the run still
-exits 0 — a pipeline that is red every night for four documented defects is a
-pipeline nobody reads. What still fails the run is a route that 404s, a demo that
+exits 0 — a run that fails every time for four documented defects is a run
+nobody reads. What still fails the run is a route that 404s, a demo that
 renders no chat surface, or an IDE view that cannot be built: those are breaks in
 this repo rather than in the thing under test.
 
@@ -250,8 +247,7 @@ The clips are gitignored — they are build output, ~5MB each and rewritten on
 every run. `npm run manifest` writes `videos/manifest.json` and `MANIFEST.md`,
 which *are* committed and are the record of which clips are current.
 
-**The report belongs to the run that produced it.** `RECORD_RESULTS.json`
-describes one run and the next overwrites it, so re-recording a single page after
-a full suite leaves only that page's results behind. `DOCUMENTED_REPORT.md` prints
-a `⚠️ Partial run — N of M pages` banner when that happens, naming what is not
-covered — but the habit to keep is: full run before a full report.
+**Results merge across runs.** `RECORD_RESULTS.json` is merged by page id,
+newest wins, and every entry carries its own `recordedAt` — so re-recording a
+single page after a full suite keeps the other pages' rows, and `recordedAt`
+says which rows are from the latest run.

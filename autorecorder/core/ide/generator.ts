@@ -163,8 +163,8 @@ export async function generateIdeHtml(
       // Said out loud. A missing ideFile used to render one grey comment line
       // and nothing else, which films as an empty editor -- indistinguishable
       // from a short file. That is how every generated VERSIONS.md reached the
-      // demos blank: gitignored, not written on the --skip-install path, and
-      // no complaint from anywhere in the pipeline.
+      // demos blank: gitignored, not written unless the doctor ran, and no
+      // complaint from anywhere.
       if (missing) {
         console.warn(`   ⚠️  IDE file missing: ${tab.filePath} -- the clip will show an empty editor.`);
       }

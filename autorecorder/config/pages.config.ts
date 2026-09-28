@@ -51,7 +51,7 @@
  * This repo is not only documenting an integration that works. Four of the
  * pages below are on the QA report as broken, and their clips exist to show
  * that. `knownIssue` is what makes the run say `[ISSUE]` rather than `[PASS]`,
- * and it is the same object `ci/build-report.mjs` renders into the daily
+ * and it is the same object that lands in RECORD_RESULTS.json and the QA
  * report — so the sentence typed on screen and the row that goes to the
  * manager are one string, written here, once.
  *
@@ -73,7 +73,8 @@ export const PAGES = definePages([
     // Leads with the versions, not the manifest. package.json declares RANGES,
     // so a clip of it shows a floor while the run it documents has installed
     // something newer. VERSIONS.md is generated after install
-    // (ci/write-versions.mjs) and names what actually resolved.
+    // (autorecorder/scripts/write-versions.mjs, run by `npm run doctor`) and
+    // names what actually resolved.
     ideFile: 'frontend/VERSIONS.md',
     startLine: 1,
     endLine: 16,

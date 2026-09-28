@@ -127,7 +127,6 @@ Worth stating plainly, because this port had to merge them:
 |---|---|---|
 | `knownIssue`, `[ISSUE]` outcome | ✗ | ✓ |
 | `issue-note.ts`, `caption.ts`, `devtools-console.ts`, `compare.ts` | ✗ | ✓ |
-| `ci/build-report.mjs` → `DOCUMENTED_REPORT.md` | ✗ | ✓ |
 | `--pages=issues` | ✗ | ✓ |
 | `page-ready.ts` readiness gate | ✓ | ✗ |
 | `file-dialog.ts` | ✓ | ✗ |
