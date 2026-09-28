@@ -15,8 +15,8 @@ import { type KnownIssue } from './types';
  * without a covering email.
  *
  * The point of doing it here rather than in each action is that the same
- * `KnownIssue` object also feeds `ci/build-report.mjs`. The sentence typed on
- * video and the row in the daily report are one string, written once -- which
+ * `KnownIssue` object also lands in RECORD_RESULTS.json. The sentence typed on
+ * video and the row in the QA report are one string, written once -- which
  * is the only arrangement where they cannot drift apart.
  */
 

@@ -154,17 +154,19 @@ knownIssue: { area, problem, impact, likelyCause, expectsNoResponse? }
 
 Three consequences, and it is worth knowing all three before adding one:
 
-1. The run reports `[ISSUE]` rather than `[PASS]`, and does **not** set a
-   non-zero exit code. Documented defects must not turn a nightly pipeline red;
-   a pipeline that is red every night is one nobody reads.
+1. When the handler observes the defect and calls `ctx.reproduced(evidence)`,
+   the run reports `[ISSUE]` rather than `[PASS]`, and does **not** set a
+   non-zero exit code. Documented defects must not make every run fail; a run
+   that always fails is one nobody reads. When it does not,
+   the take is `[PASS*]` with "KNOWN ISSUE NOT REPRODUCED".
 2. `writeIssueNote()` types the four fields into a simulated Notepad at the end
    of the take, over the still-visible failure.
-3. Anything downstream — here, `ci/build-report.mjs` — renders the same object
-   into the report that gets sent on.
+3. The same object is written into `RECORD_RESULTS.json`, which is what the
+   report that gets sent on is built from.
 
-`[ISSUE]` means "this page is on the known-issues list and recorded cleanly". It
-does **not** mean the defect was confirmed today: the recorder cannot judge
-that, and the summary says so. Watch the clip.
+`[ISSUE]` means "this page is on the known-issues list and the handler saw the
+defect this take", and the result carries what it saw. It is only as good as
+the handler's check, so watch the clip.
 
 The doctor enforces two things. Every field must be non-empty, because each one
 lands verbatim in a document someone sends to their manager. And the page must
@@ -173,7 +175,7 @@ have an action handler — a `knownIssue` page falling through to
 one outcome worse than not recording it.
 
 **Delete a `knownIssue` in the same change that confirms the fix.** A stale one
-keeps asserting a bug that is gone, and nothing can detect that for you.
+shows up as "KNOWN ISSUE NOT REPRODUCED" on every run until you do.
 
 ### Filming an absence
 

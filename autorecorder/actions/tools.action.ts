@@ -34,11 +34,13 @@
  */
 import { type Page } from 'playwright';
 
+import { SELECTORS } from '../config/selectors.config';
 import { promptsFor, sendPrompt, waitForAgentResponseCompletion } from '../core/actions';
-import { humanClick, humanGlide, sleep } from '../core/overlays/cursor';
+import { beat, humanClick, humanGlide, sleep } from '../core/overlays/cursor';
 import { type PageActionHandler, type PageRecordConfig } from '../core/types';
 
 import { waitForDomSettled } from './page-ready';
+import { excerpt } from './reply-text';
 import { writeScratchNote } from './scratch-note';
 
 /**
@@ -101,9 +103,41 @@ async function readIncidentCard(
     .catch(() => null);
 }
 
+/** The card as rendered: `INC-4711sev1` when Angular stripped the gap. */
+async function incidentCardRendered(page: Page): Promise<string> {
+  return page
+    .evaluate(() => (document.querySelector('app-incident-card') as HTMLElement | null)?.innerText ?? '')
+    .catch(() => '');
+}
+
+/**
+ * Assistant text from this turn that is not the card itself: the follow-up
+ * nobody asked for. Works whether it lands in the card's message or after it.
+ */
+async function textBesideCard(page: Page, sinceCount: number): Promise<string> {
+  return page
+    .evaluate(
+      ({ sel, since }) => {
+        const msgs = Array.from(document.querySelectorAll(sel)).slice(since);
+        return msgs
+          .map((m) => {
+            const clone = m.cloneNode(true) as HTMLElement;
+            clone.querySelectorAll('app-incident-card').forEach((c) => c.remove());
+            return (clone.textContent || '').replace(/\s+/g, ' ').trim();
+          })
+          .filter(Boolean)
+          .join(' ');
+      },
+      { sel: SELECTORS.assistantMessage, since: sinceCount },
+    )
+    .catch(() => '');
+}
+
 export const runToolsAction: PageActionHandler = async (
   page: Page,
   config: PageRecordConfig,
+  _rootPath,
+  ctx,
 ) => {
   const [weatherPrompt, backgroundPrompt, incidentPrompt] = promptsFor(config);
   const wait = config.waitAfterPromptMs ?? 4000;
@@ -119,7 +153,7 @@ export const runToolsAction: PageActionHandler = async (
   // renderer is visible as its own failure instead of a silent absence.
   const weatherCard = page.locator('app-weather-card').first();
   await weatherCard.waitFor({ state: 'visible', timeout: 25000 }).catch(() => {
-    console.warn(`   ⚠️ app-weather-card never rendered — tool call may not have fired.`);
+    ctx.fail('app-weather-card never rendered -- the tool renderer did not run.');
   });
 
   await waitForAgentResponseCompletion(page, wait, firstCount);
@@ -127,7 +161,7 @@ export const runToolsAction: PageActionHandler = async (
   const cardBox = await weatherCard.boundingBox().catch(() => null);
   if (cardBox) {
     await humanGlide(page, cardBox.x + cardBox.width / 2, cardBox.y + cardBox.height / 2, 22);
-    await sleep(2200);
+    await beat(2200);
   }
 
   // ── Browser-side tool, whose only output is the page repainting ───────────
@@ -138,9 +172,9 @@ export const runToolsAction: PageActionHandler = async (
 
   console.log(`   ✨ Showing the repainted background.`);
   await humanGlide(page, 500, 350, 25);
-  await sleep(1000);
+  await beat(1000);
   await humanGlide(page, 700, 520, 25);
-  await sleep(2000);
+  await beat(2000);
 
   // ── Display-only registration: the guide's new section, and the finding ───
   if (!incidentPrompt) return;
@@ -148,9 +182,11 @@ export const runToolsAction: PageActionHandler = async (
   const thirdCount = await sendPrompt(page, incidentPrompt);
 
   const incidentCard = page.locator('app-incident-card').first();
-  await incidentCard.waitFor({ state: 'visible', timeout: 25000 }).catch(() => {
-    console.warn(`   ⚠️ app-incident-card never rendered — registerComponent did not fire.`);
-  });
+  const incidentShown = await incidentCard
+    .waitFor({ state: 'visible', timeout: 25000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!incidentShown) ctx.fail('app-incident-card never rendered -- registerComponent did not fire.');
 
   // Sampled the instant it mounts. The guide's in-progress guard does not fire,
   // so this is where the empty-card frame is caught if it is catchable.
@@ -164,8 +200,27 @@ export const runToolsAction: PageActionHandler = async (
   const settled = await readIncidentCard(page);
   if (settled && settled.id) {
     console.log(`   ✅ Card settled correct: ${settled.id} / ${settled.severity}.`);
-  } else {
-    console.warn(`   ⚠️ Card never filled in.`);
+  } else if (incidentShown) {
+    ctx.fail('app-incident-card never filled in -- id and severity stayed empty.');
+  }
+
+  // The knownIssue's defects this take can actually see. (3), the status
+  // never reaching "complete", is invisible here: the @else branch paints the
+  // same markup for "executing" and "complete".
+  const seen = { emptyAtMount: false, followUp: '', runTogether: '' };
+  if (incidentShown && atMount && !atMount.id && !atMount.severity) {
+    seen.emptyAtMount = true;
+    ctx.reproduced('(2) the card mounted empty -- the in-progress guard did not fire');
+  }
+  await sleep(1500);
+  seen.followUp = await textBesideCard(page, thirdCount);
+  if (seen.followUp) {
+    ctx.reproduced(`(1) a follow-up turn nobody asked for: "${excerpt(seen.followUp)}"`);
+  }
+  const rendered = await incidentCardRendered(page);
+  if (settled?.id && settled.severity && rendered.includes(`${settled.id}${settled.severity}`)) {
+    seen.runTogether = `${settled.id}${settled.severity}`;
+    ctx.reproduced(`(4) no gap between the fields: renders as "${seen.runTogether}"`);
   }
 
   // Rest on the card, then travel down to the turn underneath it. The two being
@@ -173,28 +228,28 @@ export const runToolsAction: PageActionHandler = async (
   const incidentBox = await incidentCard.boundingBox().catch(() => null);
   if (incidentBox) {
     await humanGlide(page, incidentBox.x + 60, incidentBox.y + 18, 22);
-    await sleep(2400);
+    await beat(2400);
     console.log(`   👇 Travelling to the follow-up turn beneath it.`);
     await humanGlide(page, incidentBox.x + 80, incidentBox.y + incidentBox.height + 70, 20);
-    await sleep(2600);
+    await beat(2600);
   }
 
-  await writeScratchNote(page, 'registercomponent.txt', [
-    'card is right',
-    'the message under it is a turn nobody asked for',
-    'no handler means core writes an empty tool result',
-    'so the model always gets another turn',
-    'followUp: false removes it - guide never says so',
-    '',
-    'it guards on status in-progress',
-    'real status is executing so the guard never fires',
-    'card paints empty first',
-    '',
-    'and it never reaches complete at all',
-    'the other renderer on this page says gate on complete',
-    'do that here and it loads forever',
-    '',
-    'no css either and angular strips the gap',
-    'renders INC-4711sev1 - not a card',
-  ]);
+  // Only what this take showed. A note typed regardless of the result would
+  // keep "proving" a defect after it was fixed.
+  const note: string[] = [];
+  if (seen.followUp) {
+    note.push(
+      'the message under the card is a turn nobody asked for',
+      'no handler means core writes an empty tool result',
+      'followUp: false removes it - guide never says so',
+      '',
+    );
+  }
+  if (seen.emptyAtMount) {
+    note.push('it guards on status in-progress', 'the guard never fired - card painted empty first', '');
+  }
+  if (seen.runTogether) {
+    note.push('no css either and angular strips the gap', `renders ${seen.runTogether} - not a card`);
+  }
+  if (note.length > 0) await writeScratchNote(page, 'registercomponent.txt', note);
 };

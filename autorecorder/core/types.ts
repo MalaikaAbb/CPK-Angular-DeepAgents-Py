@@ -10,13 +10,13 @@ export { type IdeTabConfig };
  * Some repos exist to document a working integration; this one also exists to
  * document a broken one. A page carrying this is *expected* to misbehave, so
  * the run reports it as `[ISSUE]` rather than `[FAIL]` and the process still
- * exits 0 -- a pipeline that is red every night for seven known defects is a
- * pipeline nobody reads. What still fails is a route that 404s, a demo that
+ * exits 0 -- a run that fails every time for seven known defects is a run
+ * nobody reads. What still fails is a route that 404s, a demo that
  * renders no chat surface, or an IDE view that cannot be built: those are
  * breaks in this repo, not in the thing under test.
  *
  * The fields are the QA report's own fields, so the note the recorder types
- * into Notepad on screen and the row that ends up in the daily report are the
+ * into Notepad on screen and the row that ends up in the QA report are the
  * same text, written once.
  */
 export interface KnownIssue {
@@ -35,7 +35,7 @@ export interface KnownIssue {
   /**
    * Set when the defect is that the agent never answers at all. Without it,
    * agent silence is a recording failure; with it, silence is the finding and
-   * the take still reports `[ISSUE]`.
+   * the take reports `[ISSUE]` (silence counts as `ctx.reproduced`).
    */
   expectsNoResponse?: boolean;
 }
@@ -84,14 +84,70 @@ export interface PageDefinition {
 
   /**
    * The defect this page reproduces, when it reproduces one. Presence flips the
-   * take's outcome to `[ISSUE]` and is what the daily report generator reads.
+   * take's outcome to `[ISSUE]` and is carried into RECORD_RESULTS.json.
    */
   knownIssue?: KnownIssue;
 
   /** Per-page overrides of the recorder's fixed waits. See `RecorderTimeouts`. */
   timeouts?: Partial<RecorderTimeouts>;
+
+  /**
+   * The take, as data. Pages whose handler was "send the prompt, rest the
+   * cursor on the thing under test, check it rendered" describe that here and
+   * use the standard handler; a bespoke handler in actions/ is only for pages
+   * whose failure diagnosis needs code (A2UI's two reasons, the write page's
+   * button-first flow).
+   */
+  demo?: DemoScript;
 }
 
+/** A place to rest the cursor: a selector (first visible match) or fixed coordinates. */
+export type DemoGlideTarget =
+  | string
+  | { selector: string; beatMs?: number; offset?: { x: number; y: number } }
+  | { x: number; y: number; beatMs?: number };
+
+/** A verdict on what the page shows once the reply is in. */
+export interface DemoCheck {
+  /** Playwright selector; `text=...` allowed. First match unless `last` is set. */
+  selector: string;
+  last?: boolean;
+  /** Pass when the element's text contains every entry (case-insensitive). */
+  contains?: string | string[];
+  /** Pass when the element is NOT visible. */
+  absent?: boolean;
+  /** Pass when the element's enabled state matches. */
+  enabled?: boolean;
+  timeoutMs?: number;
+  /** A failed check is a defect (`fail`) or a note on the clip (`warn`, default). */
+  severity?: 'fail' | 'warn';
+  /** Logged on a pass. */
+  ok?: string;
+  /** Reported on a miss. `{found}`/`{total}` expand for `contains` lists; `{text}` is what was read. */
+  message: string;
+}
+
+export interface DemoScript {
+  /** Before the prompt: rest on these, in order. Missing targets are skipped. */
+  before?: DemoGlideTarget[];
+  /** Composer submit timeout. */
+  sendTimeoutMs?: number;
+  /** Capture the browser alert the prompt provokes; `missing` is the warning if none fires. */
+  alert?: { missing: string };
+  /**
+   * After the prompt: the thing under test. Waited for, then rested on. If
+   * `required` is set and it never renders, that message is the take's defect.
+   */
+  render?: { selector: string; last?: boolean; timeoutMs?: number; beatMs?: number; required?: string };
+  /** Click this once `render` (or the prompt) is done, then wait for the follow-up reply. */
+  click?: { selector: string; missing: string; beatMs?: number };
+  /** After the prompt, before the reply finishes: rest on these, in order. */
+  glideTo?: DemoGlideTarget[];
+  /** Once the reply has finished. */
+  checks?: DemoCheck[];
+}
+
+/** A page definition with everything resolved. What the engine consumes. */
 /** A page definition with everything resolved. What the engine consumes. */
 export interface PageRecordConfig extends PageDefinition {
   docUrl: string;
@@ -121,11 +177,11 @@ export function definePages(defs: PageDefinition[]): PageRecordConfig[] {
 }
 
 /**
- * How a page handler reports what it saw, so the summary and CI see it too.
+ * How a page handler reports what it saw, so the summary and results see it too.
  *
  * Before this, a handler that noticed "the weather card never rendered" could
  * only `console.warn` it. The run still printed `[PASS]` with no asterisk, and
- * the CI report carried nothing. `warn` puts the note on the result as `PASS*`;
+ * RECORD_RESULTS.json carried nothing. `warn` puts the note on the result as `PASS*`;
  * `fail` marks the recording failed once the handler returns, so the clip is
  * still filmed to the end and still saved as evidence.
  */
@@ -134,6 +190,13 @@ export interface ActionContext {
   warn: (message: string) => void;
   /** The feature under test did not work. The recording finishes, then fails. */
   fail: (message: string) => void;
+  /**
+   * The page's declared `knownIssue` was observed in this take, with what was
+   * seen. A page with a `knownIssue` is `[ISSUE]` only if its handler calls
+   * this; otherwise the defect did not reproduce and the take says so. Without
+   * it, a fixed defect kept reporting `[ISSUE]` forever.
+   */
+  reproduced: (evidence: string) => void;
   /** Resolved timeouts for this page. */
   timeouts: RecorderTimeouts;
 }

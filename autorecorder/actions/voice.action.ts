@@ -46,14 +46,29 @@
  * scratch note rather than a formal one, because this page carries a
  * `knownIssue` and `scratch-note.ts` explains why the two are decoupled.
  */
-import { type Page } from 'playwright';
+import { type Page, type Request, type Response } from 'playwright';
 
 import { sendPrompt, waitForAgentResponseCompletion } from '../core/actions';
-import { humanClick, humanGlide, sleep } from '../core/overlays/cursor';
+import { beat, humanClick, humanGlide, sleep } from '../core/overlays/cursor';
 import { type PageActionHandler, type PageRecordConfig } from '../core/types';
 
 import { attachFixtureOnCamera, renderRevenueFixture } from './attach-file';
+import { excerpt, latestReplyText } from './reply-text';
 import { writeScratchNote } from './scratch-note';
+
+/**
+ * The transcription request: `${runtimeUrl}/transcribe` in REST mode, or the
+ * runtime root with a `transcribe` method in single-endpoint mode.
+ */
+function isTranscribeRequest(req: Request): boolean {
+  if (/transcri/i.test(req.url())) return true;
+  if (!/\/api\/copilotkit/.test(req.url()) || req.method() !== 'POST') return false;
+  try {
+    return /transcri/i.test(req.postData() ?? '');
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Holds `getUserMedia` until the Allow click, then satisfies it — from the real
@@ -145,14 +160,28 @@ export const runVoiceAction: PageActionHandler = async (
   page: Page,
   config: PageRecordConfig,
   rootPath: string,
+  ctx,
 ) => {
-  // ── Half one: the attachment, which passes ────────────────────────────────
+  // ── Half one: the attachment ──────────────────────────────────────────────
   const buffer = await renderRevenueFixture(page, rootPath);
   await attachFixtureOnCamera(page, buffer);
 
   const msgCount = await sendPrompt(page, config.prompt);
   await waitForAgentResponseCompletion(page, config.waitAfterPromptMs ?? 4000, msgCount);
-  await sleep(1200);
+  await beat(1200);
+
+  // The chart's title and Q4 value exist only inside the image (attach-file.ts
+  // draws "Quarterly revenue" and "Q4 300"). A reply naming neither did not
+  // read the attachment, whatever else it says.
+  const chartReply = await latestReplyText(page);
+  const namedTitle = /quarterly revenue/i.test(chartReply);
+  const namedQ4 = /\b300\b/.test(chartReply);
+  const readChart = namedTitle && namedQ4;
+  if (!namedTitle && !namedQ4) {
+    ctx.fail(`attachment not read: the reply names neither the chart title nor Q4 = 300 ("${excerpt(chartReply)}")`);
+  } else if (!readChart) {
+    ctx.warn(`attachment only partly read: reply is "${excerpt(chartReply)}"`);
+  }
 
   // ── Half two: the microphone, which records and then cannot transcribe ────
   const origin = new URL(page.url()).host;
@@ -176,8 +205,14 @@ export const runVoiceAction: PageActionHandler = async (
     .then(() => micBtn.boundingBox())
     .catch(() => null);
 
+  // What stopping the recording actually produced. Evidence for the knownIssue
+  // only if it fails; a working transcription means the defect is gone.
+  const transcribeFailures: string[] = [];
+  let composerEmptyAfterFinish = false;
+  let synthetic = false;
+
   if (!micBox) {
-    console.warn(`   ⚠️ transcribe control not found — skipping the voice path.`);
+    ctx.warn('transcribe control not found -- the voice half of the guide was not exercised.');
   } else {
     console.log(`   🎙️ Clicking the microphone control...`);
     await humanGlide(page, micBox.x + micBox.width / 2, micBox.y + micBox.height / 2, 22);
@@ -228,10 +263,10 @@ export const runVoiceAction: PageActionHandler = async (
         .catch(() => false));
 
     if (recording && !finishes) {
-      console.warn(`   ⚠️ no finish (tick) control — falling back to cancel, which sends no audio.`);
+      ctx.warn('no finish (tick) control -- fell back to cancel, which sends no audio for transcription.');
     }
 
-    const synthetic = await page
+    synthetic = await page
       .evaluate(() => (window as unknown as { __micSynthetic?: boolean }).__micSynthetic === true)
       .catch(() => false);
 
@@ -242,38 +277,84 @@ export const runVoiceAction: PageActionHandler = async (
     );
 
     await humanGlide(page, micBox.x - 120, micBox.y + micBox.height / 2, 20);
-    await sleep(4000);
+    await beat(4000);
 
-    // Stopping is what posts the audio for transcription -- i.e. what fails.
+    if (!recording) {
+      ctx.warn('the composer never entered its recording state -- nothing was sent for transcription.');
+    }
+
+    // Stopping is what posts the audio for transcription. Watch that request
+    // rather than assume it fails. (Cancel, the fallback, posts nothing, so
+    // what follows it is not evidence either way.)
     if (recording) {
       const stopBox = await stopBtn.boundingBox().catch(() => null);
       if (stopBox) {
-        console.log(`   ✔️ Finishing — this is the request that has no service behind it.`);
+        const onResponse = (res: Response) => {
+          if (isTranscribeRequest(res.request()) && res.status() >= 400) {
+            transcribeFailures.push(`${res.request().method()} ${new URL(res.url()).pathname} -> HTTP ${res.status()}`);
+          }
+        };
+        const onFailed = (req: Request) => {
+          if (isTranscribeRequest(req)) {
+            transcribeFailures.push(`${req.method()} ${new URL(req.url()).pathname} ${req.failure()?.errorText ?? 'failed'}`);
+          }
+        };
+        page.on('response', onResponse);
+        page.on('requestfailed', onFailed);
+
+        console.log(`   ✔️ Finishing — this posts the audio for transcription.`);
         await humanGlide(page, stopBox.x + stopBox.width / 2, stopBox.y + stopBox.height / 2, 20);
         await sleep(400);
         await humanClick(page);
-        await sleep(3000);
+        await beat(3000);
+
+        page.off('response', onResponse);
+        page.off('requestfailed', onFailed);
+
+        if (finishes) {
+          const composerText = await page
+            .locator('textarea')
+            .first()
+            .inputValue()
+            .catch(() => '');
+          composerEmptyAfterFinish = composerText.trim() === '';
+        }
       }
     }
   }
 
-  // The finding, while the failure is still on screen. Informal on purpose --
-  // see scratch-note.ts; the formal wording lives in this page's knownIssue.
+  // A synthesized tone transcribes to nothing even on a working service, so an
+  // empty composer alone is only evidence when the stream came from a device.
+  if (transcribeFailures.length > 0) {
+    ctx.reproduced(`transcription request failed: ${transcribeFailures.join('; ')}`);
+  } else if (composerEmptyAfterFinish && !synthetic) {
+    ctx.reproduced('composer still empty 3s after finishing a recording from a real device');
+  } else if (composerEmptyAfterFinish) {
+    ctx.warn(
+      'composer empty after finishing, but the stream was synthesized and no transcription request ' +
+        'failed -- cannot tell a missing service from a silent recording.',
+    );
+  }
+
+  // The note says what this take saw, not what an earlier one did. Informal on
+  // purpose -- see scratch-note.ts; the formal wording lives in the knownIssue.
+  const voiceBroken = transcribeFailures.length > 0 || (composerEmptyAfterFinish && !synthetic);
   if (config.knownIssue) {
     await writeScratchNote(page, 'voice.txt', [
-      'attachment half works',
-      'agent read the chart it was sent',
+      readChart ? 'attachment half works' : 'attachment half did NOT work',
+      readChart ? 'agent read the chart it was sent' : 'reply never named the chart title and Q4',
       '',
-      'mic renders asks permission and records fine',
-      'stop posts the audio and nothing comes back',
-      'composer stays empty',
-      '',
-      'runtime has no transcription service configured',
-      'so only the voice half is broken',
+      ...(voiceBroken
+        ? [
+            'mic renders asks permission and records fine',
+            transcribeFailures.length > 0 ? `stop posts the audio: ${transcribeFailures[0]}` : 'stop posts the audio and nothing comes back',
+            'composer stays empty',
+          ]
+        : ['voice half did not show the failure this take']),
       '',
       'permission bubble and open dialog are drawn by the recorder',
       'the file and the reply are real',
     ]);
   }
-  await sleep(800);
+  await beat(800);
 };

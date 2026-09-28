@@ -51,7 +51,7 @@
  * This repo is not only documenting an integration that works. Four of the
  * pages below are on the QA report as broken, and their clips exist to show
  * that. `knownIssue` is what makes the run say `[ISSUE]` rather than `[PASS]`,
- * and it is the same object `ci/build-report.mjs` renders into the daily
+ * and it is the same object that lands in RECORD_RESULTS.json and the QA
  * report — so the sentence typed on screen and the row that goes to the
  * manager are one string, written here, once.
  *
@@ -73,7 +73,8 @@ export const PAGES = definePages([
     // Leads with the versions, not the manifest. package.json declares RANGES,
     // so a clip of it shows a floor while the run it documents has installed
     // something newer. VERSIONS.md is generated after install
-    // (ci/write-versions.mjs) and names what actually resolved.
+    // (autorecorder/scripts/write-versions.mjs, run by `npm run doctor`) and
+    // names what actually resolved.
     ideFile: 'frontend/VERSIONS.md',
     startLine: 1,
     endLine: 16,
@@ -175,7 +176,7 @@ export const PAGES = definePages([
         'The page’s new first section, “Let the agent display one of your components”, runs — and its ' +
         'published snippet is wrong four ways. (1) It carries no `handler`, so core writes an empty tool ' +
         'result and the model is always handed a second turn nobody asked for; what lands there is ' +
-        'model-dependent, a false apology contradicting the card on gpt-4o-mini and filler on stronger ' +
+        'model-dependent, a false apology contradicting the card on gpt-5.4-mini and filler on stronger ' +
         'models. (2) It guards on `status === "in-progress"`, but the status observed while arguments ' +
         'stream is `"executing"`, so the guard never fires and the `@else` branch paints an empty card ' +
         'first. (3) The status never reaches `"complete"` at all — sampled once a second for 25 seconds. ' +
@@ -199,53 +200,6 @@ export const PAGES = definePages([
         'result” snippet imports `{ type AngularToolCall, type ToolRenderer }` and sets no `standalone`, ' +
         'while the new snippet imports both as values and sets `standalone: true` — two renderers, one ' +
         'page, two conventions.',
-    },
-  },
-  {
-    id: 'a2ui',
-    name: 'Guides - A2UI schemas, styling, and recovery',
-    videoName: 'A2ui',
-    docPath: 'guides/a2ui',
-    route: 'a2ui',
-    // The component is four lines of chat: per the guide, "on the frontend the
-    // A2UI renderer activates automatically. No extra configuration is needed."
-    // That claim is the thing under test, so the component leads and the two
-    // places configuration actually lives follow it.
-    ideFile: 'frontend/src/app/features/a2ui/a2ui-chat.component.ts',
-    startLine: 11,
-    endLine: 22,
-    extraTabs: [
-      // `a2ui.recovery` is set; `a2ui.catalog` is not. That absence is the
-      // whole finding, so the range covers the provider block where a catalog
-      // would go.
-      { filePath: 'frontend/src/app/app.config.ts', startLine: 44, endLine: 66 },
-      // `a2ui: {}` — the runtime half, which /info duly reports as enabled.
-      { filePath: 'frontend/server.ts', startLine: 39, endLine: 45 },
-    ],
-    prompt:
-      'Can you show me a flight card for BA117, London to New York, as a rendered UI component?',
-    waitAfterPromptMs: 5000,
-    // Observed 28 Aug 2026 against @copilotkit/angular 0.3.1 / runtime 1.67.1.
-    // NOTE the difference from the React/Python report, which describes this as
-    // `Catalog not found: https://a2ui.org/.../basic_catalog.json`. On Angular
-    // there is no such error: the console is clean and nothing is fetched. The
-    // two frontends fail differently, and the report says what this one does.
-    knownIssue: {
-      area: 'Deep Agents (Angular) - Guides - A2UI schemas, styling, and recovery',
-      problem:
-        'Asking for a declarative surface returns ordinary prose. No A2UI component is rendered, and — unlike ' +
-        'the React/Python build of the same guide — nothing is logged: the browser console is clean and no ' +
-        'catalog request is attempted. The renderer never activates at all rather than activating and failing.',
-      impact:
-        'A2UI cannot be used on this page, and the failure is silent. Because there is no error anywhere, a ' +
-        'reader following the guide has no way to tell a missing catalog from a model that simply chose to ' +
-        'answer in text, which makes the feature undebuggable as documented.',
-      likelyCause:
-        'Supplying `a2ui.catalog` to provideCopilotKit is what registers the render_a2ui renderer, and no ' +
-        "catalog is supplied — the guide's catalog snippet is not self-contained (it references " +
-        '`dynamicString`, `beautifulCatalog`, `declarativeCatalog`, `fixedCatalog` and `productCatalog`, none ' +
-        'of which the guide defines). The runtime reports `a2uiEnabled: true`, so the middleware is on and ' +
-        'only the browser-side renderer is missing.',
     },
   },
   {
@@ -307,7 +261,22 @@ export const PAGES = definePages([
         endLine: 48,
       },
     ],
-    prompt: 'Please delete my account. Check with me before you actually do it.',
+    // Whether this page pauses is the model's decision, so the prompt is the
+    // whole reliability story -- see actions/hitl.action.ts.
+    //
+    // Turn 1 asks for something this agent could plausibly do. The previous
+    // wording ("please delete my account") asked for a capability it does not
+    // have, so the natural answer was a refusal, not a tool call, and the card
+    // appeared only some of the time.
+    //
+    // Turn 2 names the tool, and is sent only when turn 1 produced no card.
+    // Needing it is a finding, not a fix: the action reports it.
+    prompt:
+      'Email the research summary to dana@example.com, but check with me before it goes out.',
+    prompts: [
+      'Email the research summary to dana@example.com, but check with me before it goes out.',
+      'Use your approval tool to confirm with me first, then send it.',
+    ],
     waitAfterPromptMs: 4000,
   },
   {
@@ -334,7 +303,7 @@ export const PAGES = definePages([
     prompt: 'What is the priority set to right now?',
     prompts: [
       'What is the priority set to right now?',
-      'What is the priority set to right now?',
+      'And now? What is the priority?',
       'Which timezone am I on?',
     ],
     waitAfterPromptMs: 4000,
@@ -378,90 +347,36 @@ export const PAGES = definePages([
       // The drop-in half of the guide: CopilotThreadsDrawer beside a chat,
       // under one provideCopilotChatConfiguration.
       { filePath: 'frontend/src/app/features/threads/conversations.component.ts', startLine: 7, endLine: 23 },
-      { filePath: 'frontend/src/app/features/threads/threads-demo.component.ts', startLine: 10, endLine: 35 },
+      { filePath: 'frontend/src/app/features/threads/threads-demo.component.ts', startLine: 24, endLine: 47 },
     ],
     prompt: 'In one line, what are threads for?',
     waitAfterPromptMs: 4000,
-    // Observed 28 Aug 2026. This finding was rewritten after watching the
-    // network: the original assumption (borrowed from the sibling repos) was
-    // that listing is unlicensed and the drawer renders a locked state. Neither
-    // is true here. `GET /api/copilotkit/threads?agentId=support&limit=20`
-    // answers 200 with a real thread, and the hand-built list displays it. It is
-    // the drop-in component that renders nothing at all.
+    // Re-observed 16 Sep 2026, after the runtime started passing `intelligence`.
+    // The 28 Aug finding (empty drawer, `mutations: false`, null names) no longer
+    // holds: frames from the recorded clip show the drawer listing named threads,
+    // and the runtime reports `mode: "intelligence"` with mutations enabled. What
+    // remains is that none of this works until a step the guide never mentions.
     knownIssue: {
       area: 'Deep Agents (Angular) - Threads, memory, attachments, headless - Threads',
       problem:
-        '`CopilotThreadsDrawer` renders completely empty — no list, no launcher, no locked state, no error. ' +
-        'The data it needs is demonstrably available: on the same page the hand-built `injectThreads` list ' +
-        'shows a thread returned by `GET /api/copilotkit/threads` (200), which renders as "Untitled ' +
-        'conversation" because the API returns `name: null`. Creating a conversation additionally does not ' +
-        'persist — the runtime reports `threadEndpoints.mutations: false`.',
+        'The guide presents `injectThreads` and `CopilotThreadsDrawer` as drop-ins and never states that ' +
+        'both depend on CopilotKit Intelligence. Until `CopilotRuntime` is given an `intelligence` client ' +
+        '(a `CopilotKitIntelligence` built from a project API key), the runtime runs in SSE mode with ' +
+        '`threadEndpoints.mutations: false`, so no thread can be created, renamed or kept. The wiring is ' +
+        'documented on /angular/deepagents/intelligence/connect-your-runtime, which this guide never links. ' +
+        'Separately, the custom list in the guide emits bare `<button>` elements with no wrapper, so ' +
+        '"New conversation" and every thread name render run together on one line.',
       impact:
-        'The drop-in component the guide leads with is unusable, and silently so: a reader who follows the ' +
-        'guide gets a blank area with nothing indicating a missing licence, a failed request, or an empty ' +
-        'state. Naming or re-titling a conversation is impossible, so every thread reads as "Untitled".',
+        'A reader who follows this guide alone gets thread surfaces that never persist a conversation, with ' +
+        'no error, licence message or pointer to the missing step. Once wired, both surfaces work. The ' +
+        'published custom list is unreadable as soon as more than one thread exists.',
       likelyCause:
-        'Two separate causes. The empty drawer is a rendering failure in `copilot-threads-drawer` rather than ' +
-        'a data problem, since the same endpoint feeds the working list beside it. The non-persistence is a ' +
-        'capability gap: `mutations: false` in the runtime\'s /info means thread create/rename/delete have no ' +
-        'store behind them, which the guide documents no requirement for.',
+        'An unstated prerequisite: thread storage is an Intelligence feature, and the guide was written as if ' +
+        'the runtime from the quickstart already provided it. The snippet on that page is Next.js-only ' +
+        '(`app/api/copilotkit/[[...slug]]/route.ts`, exporting one handler as `GET`, `POST`, `PATCH` and ' +
+        '`DELETE`), so an Angular reader must also adapt it to ' +
+        '`createCopilotNodeListener`. The run-together list is the published markup, unstyled.',
     },
-  },
-  {
-    id: 'memory',
-    name: 'Memory',
-    videoName: 'Memory',
-    docPath: 'guides/threads-memory-attachments-headless',
-    route: 'memory',
-    // `injectMemories` plus the `isAvailable()` gate the guide requires before
-    // showing any memory control. The gate is the whole sample.
-    ideFile: 'frontend/src/app/features/memory/memory-list.component.ts',
-    startLine: 7,
-    endLine: 32,
-    extraTabs: [
-      { filePath: 'frontend/src/app/features/memory/memory-demo.component.ts', startLine: 10, endLine: 29 },
-    ],
-    prompt: 'For future reference, I prefer concise status updates.',
-    waitAfterPromptMs: 4000,
-    // Observed 28 Aug 2026. Also rewritten after watching the network, and this
-    // one inverts the expectation recorded in the repo's own nav-config, which
-    // says isAvailable() is false and the fallback message renders. It does not:
-    // the component renders NOTHING, which is only reachable through the @else
-    // branch — so isAvailable() is true — and no memory request is ever sent.
-    knownIssue: {
-      area: 'Deep Agents (Angular) - Threads, memory, attachments, headless - Memory',
-      problem:
-        '`app-memory-list` renders nothing at all: no memories, and not the guide\'s "Memory is not available ' +
-        'for this runtime." fallback either. Since that fallback is the `@if (!isAvailable())` branch, the gate ' +
-        'is returning true — yet no request to any memory endpoint is ever issued, and asking the agent to ' +
-        'remember something stores nothing.',
-      impact:
-        'Memory is unusable and indistinguishable from a component that failed to mount. The guide\'s ' +
-        '`isAvailable()` gate — the one safeguard it prescribes — reports the feature as available while it ' +
-        'demonstrably is not, so the documented way of checking gives the wrong answer and a reader gets a ' +
-        'blank panel with no explanation.',
-      likelyCause:
-        'Unknown. `isAvailable()` appears to report availability without the runtime exposing memory routes — ' +
-        "the runtime's /info advertises thread endpoints but nothing for memory — so either the gate defaults " +
-        'to true when the capability is unreported, or the fetch is gated behind something the guide does not ' +
-        'mention. This needs confirming against a licensed runtime before the cause is stated with confidence.',
-    },
-  },
-  {
-    id: 'attachments',
-    name: 'Attachments',
-    videoName: 'Attachments',
-    docPath: 'guides/threads-memory-attachments-headless',
-    route: 'attachments',
-    ideFile: 'frontend/src/app/features/attachments/media-chat.component.ts',
-    startLine: 9,
-    endLine: 23,
-    // Asks for two values that exist only inside the attached image, so a
-    // correct answer is proof the file reached the model. A generic "what types
-    // of attachment are supported?" could be answered from the system prompt
-    // alone, which is how a broken upload comes to look fine on video.
-    prompt: 'I attached a chart. What is its title, and what is the Q4 number?',
-    waitAfterPromptMs: 4000,
   },
   {
     id: 'headless',
@@ -503,5 +418,43 @@ export const PAGES = definePages([
     // Observed 30 Aug 2026 against @copilotkit/angular 0.4.0.
     // Not a defect in the Inspector itself -- it works, and the framework does
     // mount it. The gap is in what the page says is sufficient to get it.
+  },
+  // ── Findings clips ───────────────────────────────────────────────────────
+  // Not a doc-nav page: a findings clip that compiles the A2UI guide's code
+  // verbatim (FINDINGS.md minor note #1). Last so no other clip renumbers.
+  // The engine intro shows the doc and the WORKING code, and `route` is the
+  // working demo (the engine needs `chatReady` there before the handler runs).
+  // The handler (actions/compile-demos.action.ts) then plays the take: doc
+  // snippets, the verbatim file in the IDE, the real `ng serve` error, and
+  // typed notes. No prompt is sent; `prompt` only satisfies the registry
+  // contract.
+  {
+    id: 'a2ui-compile',
+    name: 'A2UI - Undefined names (#1)',
+    videoName: 'A2uiUndefinedNames',
+    docPath: 'guides/a2ui',
+    route: 'a2ui',
+    // `a2ui` with recovery and no catalog: what the harness can do from the guide.
+    ideFile: 'frontend/src/app/app.config.ts',
+    startLine: 54,
+    endLine: 56,
+    extraTabs: [
+      { filePath: 'frontend/src/app/features/a2ui/a2ui-chat.component.ts', startLine: 1, endLine: 22 },
+    ],
+    prompt: 'No prompt: this take compiles the guide code (see actions/compile-demos.action.ts).',
+    knownIssue: {
+      area: 'Deep Agents - Guides - A2UI schemas, styling, and recovery',
+      problem:
+        "The guide's three TypeScript blocks do not compile: they have no imports and reference " +
+        '`dynamicString`, `productCatalog`, `beautifulCatalog`, `declarativeCatalog` and `fixedCatalog`, ' +
+        'none of which the page defines. `ng build --configuration doc-a2ui` reports 22 TS2304 errors.',
+      impact:
+        'A reader cannot build a catalog from the page, and without a catalog A2UI never renders. ' +
+        '`ng serve` type-checks, so the copied code stops the dev server from starting.',
+      likelyCause:
+        'The snippets were lifted from the Showcase app without its imports or catalog definitions. ' +
+        '`dynamicString` exists in no CopilotKit package (closest: DynamicStringSchema in @a2ui/web_core); ' +
+        '`Catalog` comes from @copilotkit/a2ui-renderer/web-components and is not re-exported by @copilotkit/angular.',
+    },
   },
 ]);

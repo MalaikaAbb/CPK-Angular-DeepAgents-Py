@@ -26,19 +26,24 @@
  *
  * The fourth argument, `ctx`, is how a handler reports what it saw:
  *
- *   ctx.warn('the documented defect did not reproduce')  -> [PASS*]/[ISSUE] with the note
- *   ctx.fail('Approve button never rendered')             -> [FAIL], clip still saved
+ *   ctx.warn('the card heading was empty')     -> [PASS*] with the note
+ *   ctx.fail('Approve button never rendered')  -> [FAIL], clip still saved
+ *   ctx.reproduced('what was seen')            -> [ISSUE], on a page with a knownIssue
  *
- * A `console.warn` reaches nobody: the summary, RECORD_RESULTS.json and the
- * daily report only see what goes through `ctx`.
+ * A page with a `knownIssue` is [ISSUE] only if its handler calls
+ * `ctx.reproduced` with what it saw. Otherwise it is [PASS*] with "KNOWN ISSUE
+ * NOT REPRODUCED". Its scratch note should say what the take saw, too.
+ *
+ * A `console.warn` reaches nobody: the summary and RECORD_RESULTS.json only
+ * see what goes through `ctx`.
  *
  * ── The four issue handlers ────────────────────────────────────────────────
  * `a2ui`, `voice-multimodal`, `threads` and `memory` carry a `knownIssue` in
  * pages.config.ts and their handlers exist to make the defect *visible*: an
  * absence looks identical to a slow page on video unless something on screen
  * says otherwise. Each ends by jotting a short informal note with
- * `writeScratchNote` -- the formal KnownIssue still goes to the report via
- * `ci/build-report.mjs`, but a person mid-test does not type finished prose,
+ * `writeScratchNote` -- the formal KnownIssue still goes into
+ * RECORD_RESULTS.json, but a person mid-test does not type finished prose,
  * so the two were deliberately decoupled. See `actions/scratch-note.ts`.
  *
  * They also all tolerate agent silence rather than letting it abort the take —
@@ -52,13 +57,11 @@ import { type Page } from 'playwright';
 
 import { waitForPageReady } from './page-ready';
 
-import { runA2uiAction } from './a2ui.action';
-import { runAttachmentsAction } from './attachments.action';
 import { runChatUiAction } from './chat-ui.action';
+import { runA2uiCompileAction } from './compile-demos.action';
 import { runHeadlessAction } from './headless.action';
 import { runHitlAction } from './hitl.action';
 import { runInspectorAction } from './inspector.action';
-import { runMemoryAction } from './memory.action';
 import { runSharedStateAction } from './shared-state.action';
 import { runThreadsAction } from './threads.action';
 import { runToolsAction } from './tools.action';
@@ -71,15 +74,16 @@ export const ACTION_MAP: Record<string, PageActionHandler> = {
   quickstart: runStandardAction,
   'chat-ui': runChatUiAction,
   'frontend-tools-generative-ui': runToolsAction,
-  a2ui: runA2uiAction,
   'voice-multimodal': runVoiceAction,
   'human-in-the-loop': runHitlAction,
   inspector: runInspectorAction,
   'shared-state': runSharedStateAction,
   threads: runThreadsAction,
-  memory: runMemoryAction,
-  attachments: runAttachmentsAction,
   headless: runHeadlessAction,
+  // The A2UI guide's code compiled through the doc-a2ui build config, its
+  // errors replayed from a real `ng serve` capture. See
+  // actions/compile-demos.action.ts.
+  'a2ui-compile': runA2uiCompileAction,
 };
 
 export async function executePageAction(

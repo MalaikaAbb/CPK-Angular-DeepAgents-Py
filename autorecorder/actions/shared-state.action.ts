@@ -11,10 +11,22 @@
 import { type Page } from 'playwright';
 
 import { promptsFor, sendPrompt, waitForAgentResponseCompletion } from '../core/actions';
-
-import { writeScratchNote } from './scratch-note';
-import { humanClick, humanGlide, sleep } from '../core/overlays/cursor';
+import { beat, humanClick, humanGlide, sleep } from '../core/overlays/cursor';
 import { type PageActionHandler, type PageRecordConfig } from '../core/types';
+
+import { excerpt, latestReplyText } from './reply-text';
+
+/**
+ * Did the agent see what the UI set? A reply that does not name the value is
+ * the knownIssue ("the agent is blind to them"); one that does means state or
+ * context reached the model this turn. Matching is loose on purpose -- it is
+ * the value's presence that matters, not the phrasing.
+ */
+const EXPECTED = {
+  high: /\bhigh\b/i,
+  low: /\blow\b/i,
+  london: /london|europe\/london|\bgmt\b|\bbst\b|greenwich|british summer/i,
+};
 
 export const runSharedStateAction: PageActionHandler = async (
   page: Page,
@@ -40,15 +52,25 @@ export const runSharedStateAction: PageActionHandler = async (
     await humanGlide(page, highBox.x + highBox.width / 2, highBox.y + highBox.height / 2, 20);
     await sleep(400);
     await humanClick(page);
-    await sleep(1000);
+    await beat(1000);
   } else {
     ctx.warn('"Mark high priority" button not found -- turn 1 asked about state nothing had set.');
   }
 
+  // Each turn's verdict, reported once the take is over.
+  const blind: string[] = [];
+  const check = async (label: string, set: boolean, expected: RegExp) => {
+    if (!set) return; // nothing was set, so the reply proves nothing either way
+    const reply = await latestReplyText(page);
+    if (!expected.test(reply)) blind.push(`${label}: "${excerpt(reply, 90)}"`);
+    else console.log(`   ✅ ${label} reached the agent.`);
+  };
+
   console.log(`   💬 Turn 1: ${highPrompt}`);
   const count1 = await sendPrompt(page, highPrompt);
   await waitForAgentResponseCompletion(page, wait, count1);
-  await sleep(1000);
+  await check('state priority=high', Boolean(highBox), EXPECTED.high);
+  await beat(1000);
 
   // ── Turn 2: Mark Low Priority ──────────────────────────────────────────────
   console.log(`   🔄 Step 2: Clicking "Mark low priority"...`);
@@ -61,7 +83,7 @@ export const runSharedStateAction: PageActionHandler = async (
     await humanGlide(page, lowBox.x + lowBox.width / 2, lowBox.y + lowBox.height / 2, 20);
     await sleep(400);
     await humanClick(page);
-    await sleep(1000);
+    await beat(1000);
   } else {
     ctx.warn('"Mark low priority" button not found -- turn 2 asked about state nothing had changed.');
   }
@@ -69,7 +91,8 @@ export const runSharedStateAction: PageActionHandler = async (
   console.log(`   💬 Turn 2: ${lowPrompt}`);
   const count2 = await sendPrompt(page, lowPrompt);
   await waitForAgentResponseCompletion(page, wait, count2);
-  await sleep(1000);
+  await check('state priority=low', Boolean(lowBox), EXPECTED.low);
+  await beat(1000);
 
   // ── Turn 3: Timezone Context ───────────────────────────────────────────────
   const timezoneBtn = page
@@ -81,7 +104,7 @@ export const runSharedStateAction: PageActionHandler = async (
     await humanGlide(page, tzBox.x + tzBox.width / 2, tzBox.y + tzBox.height / 2, 20);
     await sleep(400);
     await humanClick(page);
-    await sleep(1000);
+    await beat(1000);
   } else {
     ctx.warn('"Use London time" button not found -- turn 3 asked about context nothing had set.');
   }
@@ -89,6 +112,11 @@ export const runSharedStateAction: PageActionHandler = async (
   console.log(`   💬 Turn 3: ${tzPrompt}`);
   const count3 = await sendPrompt(page, tzPrompt);
   await waitForAgentResponseCompletion(page, wait, count3);
+  await check('context timezone=London', Boolean(tzBox), EXPECTED.london);
+
+  if (blind.length > 0) {
+    ctx.reproduced(`agent did not reflect what the UI set -- ${blind.join('; ')}`);
+  }
 
   // Rest on the context & state panel
   const accountContext = page.locator('app-account-context').first();
@@ -96,25 +124,7 @@ export const runSharedStateAction: PageActionHandler = async (
   if (ctxBox) {
     console.log(`   🎯 Resting on the read-only context component.`);
     await humanGlide(page, ctxBox.x + ctxBox.width / 2, ctxBox.y + ctxBox.height / 2, 22);
-    await sleep(1500);
-  }
-
-  // The finding, while the last unhelpful answer is still on screen.
-  if (config.knownIssue) {
-    await writeScratchNote(page, 'shared-state.txt', [
-      'shared state',
-      '',
-      'clicked mark high priority',
-      'ui updates - it says priority high',
-      '',
-      'asked the agent what priority is set as',
-      'it asks me what i mean',
-      'asked what my timezone is',
-      'says it has no access to it',
-      '',
-      'checked the request - state and context are',
-      'both in the post body so the browser is fine',
-      'the agent just never sees them',
-    ]);
+    await beat(1500);
   }
 };
+

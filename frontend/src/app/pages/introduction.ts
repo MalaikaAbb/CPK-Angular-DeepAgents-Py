@@ -46,16 +46,16 @@ import { NAV } from '../lib/nav-config';
           class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs leading-relaxed text-slate-100"
         ><code>Browser (Angular 22, zoneless)
   &#124;  &#64;copilotkit/angular — provideCopilotKit, copilot-chat, signal APIs
-  &#124;  POST http://localhost:8200/api/copilotkit
+  &#124;  POST http://localhost:8230/api/copilotkit
   v
-Copilot Runtime  ·  localhost:8200        &#8592; Node, frontend/server.ts
+Copilot Runtime  ·  localhost:8230        &#8592; Node, frontend/server.ts
   &#124;  agents: &#123; default, support &#125; &#8594; new LangGraphAgent(&#123; deploymentUrl, graphId &#125;)
-  &#124;  http://localhost:8123 · graph "sample_agent"
+  &#124;  http://localhost:8231 · graph "sample_agent"
   v
-DeepAgents agent  ·  localhost:8123       &#8592; Python, langgraph dev
+DeepAgents agent  ·  localhost:8231       &#8592; Python, langgraph dev
   &#124;  create_deep_agent(middleware=[CopilotKitMiddleware()])
   v
-Model  (gpt-5.4)</code></pre>
+Model  (gpt-5.4-mini)</code></pre>
 
         <p class="mt-3 text-sm text-slate-700">
           Three processes, not two. Unlike the React quickstart — where the
@@ -68,7 +68,7 @@ Model  (gpt-5.4)</code></pre>
       <ui-callout title="Both backends must be running">
         The chat will not stream if either process is down. Start the DeepAgents
         agent with
-        <code>uv run --with "langgraph-cli[inmem]" langgraph dev --port 8123 --no-browser</code>
+        <code>uv run --with "langgraph-cli[inmem]" langgraph dev --port 8231 --no-browser</code>
         from <code>backend/</code>, and the runtime with
         <code>npm run runtime</code> from <code>frontend/</code>.
       </ui-callout>

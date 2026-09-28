@@ -50,6 +50,7 @@ function shorten(text: string, max = 260): string {
  */
 export function captureConsole(page: Page): ConsoleCapture {
   const entries: ConsoleEntry[] = [];
+  ACTIVE.set(page, entries);
 
   const onConsole = (msg: { type: () => string; text: () => string; location: () => { url?: string; lineNumber?: number } }) => {
     const type = msg.type();
@@ -94,8 +95,72 @@ export function captureConsole(page: Page): ConsoleCapture {
       page.off('console', onConsole as never);
       page.off('pageerror', onPageError as never);
       page.off('requestfailed', onRequestFailed as never);
+      if (ACTIVE.get(page) === entries) ACTIVE.delete(page);
     },
   };
+}
+
+/** The live capture per page, so a wait deep in a handler can consult it. */
+const ACTIVE = new WeakMap<Page, ConsoleEntry[]>();
+
+/**
+ * Errors that mean the agent turn is already over -- the CopilotKit client
+ * reporting the run failed, the runtime endpoint refusing, or the model
+ * account rejecting the request. Anything else (a warning, an image 404) is
+ * not proof and the wait continues.
+ *
+ * The network rule covers only the run request itself: a POST to the runtime
+ * root (single-endpoint mode) or to `.../agent/<id>/...`. An inspector or
+ * thread-list GET is not the run, and `ERR_ABORTED` is the browser cancelling a
+ * request it no longer wants, not a failure -- matching either (the chat aborts
+ * `/api/copilotkit/inspector-metadata` on every page) killed healthy turns 0s in.
+ */
+const FATAL = /agent_run_failed|RUN_ERROR|insufficient_quota|no credits|invalid_api_key|Incorrect API key|^POST \S*\/api\/copilotkit[\w-]*(?:\/agent\/\S+|\/?) net::ERR_(?!ABORTED)/i;
+
+/**
+ * Entries that mean the app under test broke, as opposed to console noise.
+ *
+ * - an uncaught exception (`pageerror`);
+ * - Angular's ErrorHandler, which catches component errors and logs them as
+ *   `ERROR ...` instead of letting them reach `pageerror`, and any `NG0xxx`;
+ * - a request to one of the harness's own servers (localhost) that failed at
+ *   the network level. `ERR_ABORTED` is the browser cancelling, not a failure.
+ *
+ * A plain `console.error` from a library stays a warning: too many packages
+ * log recoverable conditions there for it to decide a verdict on its own.
+ */
+const BREAKING_CONSOLE = /^ERROR\b|\bNG0\d{3,}\b/;
+const LOCAL_REQUEST = /^\w+ https?:\/\/(localhost|127\.0\.0\.1)[:/]/;
+
+export function breakingErrors(entries: ConsoleEntry[]): ConsoleEntry[] {
+  return entries.filter((e) => {
+    if (e.level !== 'error') return false;
+    if (e.source === 'Uncaught') return true;
+    if (e.source === 'network') return LOCAL_REQUEST.test(e.text) && !/ERR_ABORTED/.test(e.text);
+    return BREAKING_CONSOLE.test(e.text);
+  });
+}
+
+/**
+ * A position in `page`'s capture, to pass to `fatalConsoleError` so errors
+ * logged before that point (an earlier turn, the page loading) are ignored.
+ */
+export function consoleMark(page: Page): number {
+  return ACTIVE.get(page)?.length ?? 0;
+}
+
+/**
+ * The first fatal error captured on `page` since `since` (a `consoleMark`,
+ * default: since capture began), or undefined.
+ *
+ * Only pages with an active `captureConsole` report anything; a handler that
+ * never started capture gets the old behaviour, waiting the full window.
+ */
+export function fatalConsoleError(page: Page, since = 0): string | undefined {
+  const entries = ACTIVE.get(page);
+  if (!entries) return undefined;
+  const hit = entries.slice(since).find((e) => e.level === 'error' && FATAL.test(e.text));
+  return hit?.text;
 }
 
 /**

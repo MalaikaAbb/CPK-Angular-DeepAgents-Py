@@ -34,22 +34,22 @@ because a video of a dead page is worse than no video.
 
 Angular has no server route to host the Copilot Runtime, so it runs as its own
 Node process (`frontend/server.ts`). `npm run dev` starts **two** processes: that
-runtime on :8203 and `ng serve` on :4203. The browser posts across origins to the
+runtime on :8230 and `ng serve` on :4230. The browser posts across origins to the
 runtime, which is why `runtimeWarmPath` in `project.config.ts` is an absolute URL
 rather than a path.
 
 ```bash
-# :8123 — the DeepAgents graph, served by the LangGraph dev server
-cd backend && uv run --with "langgraph-cli[inmem]"   langgraph dev --port 8123 --no-browser --no-reload
+# :8231 — the DeepAgents graph, served by the LangGraph dev server
+cd backend && uv run --with "langgraph-cli[inmem]"   langgraph dev --port 8231 --no-browser --no-reload
 
-# :8203 runtime + :4203 ng serve, together under concurrently
+# :8230 runtime + :4230 ng serve, together under concurrently
 cd frontend && npm run dev
 ```
 
 **`--no-reload` is not optional**, and it cost a run to learn. `langgraph dev`
-hot-reloads on any change under the repo, and the pipeline writes into the repo
-while it runs — `frontend/VERSIONS.md` before recording, then clips, logs and
-`RECORD_RESULTS.json` into `videos/`. The watcher sees those, reloads
+hot-reloads on any change under the repo, and the recorder writes into the repo
+while it runs — `frontend/VERSIONS.md` (from `scripts/write-versions.mjs`, run by
+`npm run doctor`), then clips, logs and `RECORD_RESULTS.json` into `videos/`. The watcher sees those, reloads
 repeatedly, and eventually exits mid-suite, which surfaces as later pages failing
 with "the agent never replied" and no other clue.
 
@@ -74,9 +74,6 @@ npm run record -- --pages=issues   # just the pages with known defects
 npm run record            # all pages, in order
 ```
 
-Or drive the whole thing — servers, installs, drift check, report — from the
-repo root with `npm run automate`. See [`ci/README.md`](../ci/README.md).
-
 | Flag | Effect |
 |---|---|
 | `--list`, `--help` | Print every registered route and exit |
@@ -91,8 +88,7 @@ repo root with `npm run automate`. See [`ci/README.md`](../ci/README.md).
 
 Videos land in `videos/` as `<videoPrefix>-<NN>-<name>.webm`, 1920×1080, ~25fps
 (Playwright's capture rate; it is not configurable). Per-page outcomes land
-beside them in `RECORD_RESULTS.json`, which is what `ci/build-report.mjs` turns
-into the QA report.
+beside them in `RECORD_RESULTS.json`, which is what a QA report is built from.
 
 **`videos/` is gitignored on purpose.** Recordings are build output — reproducible
 from this folder plus `npm run record` — and committing them is expensive: 17 clips
@@ -126,8 +122,8 @@ history had to be rewritten. Publish them as release assets or to a bucket.
   handler reported that the feature did not work (`ctx.fail`). The clip is still
   saved as evidence.
 
-Only **FAIL** sets a non-zero exit code, so CI can be gated on it while five
-documented defects record every night without turning the pipeline red.
+Only **FAIL** sets a non-zero exit code, so five documented defects can be
+recorded on every run without the run itself reporting failure.
 
 ---
 
@@ -149,7 +145,7 @@ That one object does three jobs, which is the whole point of it existing:
 1. it flips the take's outcome to `[ISSUE]`,
 2. it is typed into a simulated Notepad window at the end of the clip, over the
    still-visible failure, so the video carries its own report, and
-3. `ci/build-report.mjs` renders it into `DOCUMENTED_REPORT.md`.
+3. it is written into `RECORD_RESULTS.json` next to the take's outcome.
 
 The sentence on screen and the row that reaches a manager are the same string.
 There is no second place to update, so there is no second place to forget.
@@ -199,6 +195,24 @@ agent additionally failed to answer is not the finding, and losing the evidence
 to an exception would throw away the point of the clip.
 
 ---
+
+## When a take fails
+
+A failed take leaves evidence behind. Before the browser closes, the
+recorder gathers what it saw -- the diagnosed verdict, the browser console
+errors, and this page's slice of `videos/logs/backend.log` and
+`frontend.log` (from where they stood when the take began) -- and writes it
+to `videos/logs/<page-id>.error.log`. Each section is windowed around the
+line most worth reading (a traceback, an `Error`, a 4xx/5xx) and that line
+is marked `>>`, so an agent can diagnose from the log without re-running
+anything.
+
+The recorders with a CLI pipeline also replay the same text in their
+simulated terminal window at the end of the clip. This recorder has no
+terminal window (`core/cli/` is not part of the Angular port), so the evidence is log-only
+and the console says so. Passing takes are untouched.
+`core/failure-evidence.ts` holds the logic; the engine calls it from the
+`finally` of `recordPage`.
 
 ## Layout
 
@@ -257,7 +271,7 @@ autorecorder/
 
 Every pace in a take comes from `core/overlays/human.ts`, seeded from the
 page id. So two clips do not type, pause and scroll in the same rhythm — but
-tonight's take of a page is identical to last night's, which keeps two
+today's take of a page is identical to yesterday's, which keeps two
 recordings of the same defect comparable.
 
 - **Typing** has a person's rhythm: jittered keystrokes, a beat after
@@ -266,7 +280,9 @@ recordings of the same defect comparable.
   instead; that is the recorder recovering, not a performance.
 - **Scrolling** is in bursts: a few wheel notches, a reading pause, a few more,
   sometimes a nudge back up.
-- **Pauses** vary by about a quarter around their nominal length.
+- **Pauses** vary by about a quarter around their nominal length. They are
+  the only thing `AUTORECORD_PACE` scales (e.g. `0.85`): a reading or
+  thinking pause gets shorter, the typing, the mouse and the scrolling do not.
 - **The cursor** overshoots slightly on long travel and settles, hovers a
   variable moment before a click, drifts while a reply streams instead of
   freezing, and starts each take somewhere plausible rather than dead centre.
@@ -292,7 +308,7 @@ Two details worth knowing, because both were bugs once:
 
 **`Aborting before launching a browser`** — a service is down. The message names
 which one and the command to start it. `--force` overrides. Note this backend is
-`langgraph dev` on **:8123** answering `/ok`, not a FastAPI app on :8000.
+`langgraph dev` on **:8231** answering `/ok`, not a FastAPI app on :8000.
 
 **A page fails with "Agent never produced a response within 30s"** — either the
 demo is genuinely broken, or `selectors.config.ts → assistantMessage` does not

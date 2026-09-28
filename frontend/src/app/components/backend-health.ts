@@ -80,15 +80,15 @@ export class BackendHealth {
   protected readonly probes = signal<Probe[]>([
     {
       label: 'Copilot Runtime',
-      url: 'http://localhost:8200/api/copilotkit/info',
+      url: 'http://localhost:8230/api/copilotkit/info',
       hint: 'Start it with: npm run runtime',
       ok: null,
       detail: '',
     },
     {
       label: 'DeepAgents agent',
-      url: 'http://localhost:8123/ok',
-      hint: 'Start it with: uv run --with "langgraph-cli[inmem]" langgraph dev --port 8123 --no-browser (from backend/)',
+      url: 'http://localhost:8231/ok',
+      hint: 'Start it with: uv run --with "langgraph-cli[inmem]" langgraph dev --port 8231 --no-browser (from backend/)',
       ok: null,
       detail: '',
       anyStatus: true,

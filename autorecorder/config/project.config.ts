@@ -105,16 +105,13 @@ export const PROJECT: ProjectConfig = {
   docBaseUrl: 'https://docs.copilotkit.ai/angular/deepagents',
 
   // ── Ports ────────────────────────────────────────────────────────────────
-  // This repo's defaults collided with its neighbours: `ng serve` on 4200 and
-  // the runtime on 8200 are both already taken by Agno-angular, and 8200 is
-  // additionally MsPy-angular's backend. Angular and the runtime therefore
-  // moved to 4203 / 8203 so all four stacks can run at once. The langgraph dev
-  // server keeps 8123, which nothing else uses.
+  // This repo owns 4230-4239 / 8230-8239 so it never collides with the other
+  // local stacks or apps on 3000/8000: ng serve 4230, runtime 8230, langgraph 8231.
   //
   // Moving the runtime means moving it in two places -- `PORT` for
   // frontend/server.ts, and `runtimeUrl` in frontend/src/app/app.config.ts,
   // which hardcodes the URL the browser posts to.
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4203',
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4230',
 
   // Not a FastAPI app. `backend/main.py` exports a graph and
   // `backend/langgraph.json` publishes it as `sample_agent`; serving it is the
@@ -122,7 +119,7 @@ export const PROJECT: ProjectConfig = {
   // `/openapi.json`, and it is what frontend/src/app/components/backend-health.ts
   // probes too -- so both halves of the repo agree on what "the backend is up"
   // means.
-  backendUrl: process.env.BACKEND_URL || 'http://localhost:8123',
+  backendUrl: process.env.BACKEND_URL || 'http://localhost:8231',
   backendHealthPath: '/ok',
 
   // One command starts both frontend processes: `npm run dev` runs the Copilot
@@ -131,11 +128,10 @@ export const PROJECT: ProjectConfig = {
   // `--no-reload` is not optional here, and it cost a run to learn. `langgraph
   // dev` hot-reloads on any change under the repo, and the recorder writes into
   // the repo while it works -- frontend/VERSIONS.md before every doctor run,
-  // clips and RECORD_RESULTS.json into autorecorder/videos/. The watcher sees
-  // those, reloads, and eventually exits mid-suite, which surfaces as pages
+  // clips and RECORD_RESULTS.json into autorecorder/videos/. The watcher sees those, reloads, and eventually exits mid-suite, which surfaces as pages
   // failing with "the agent never replied" for no visible reason.
   backendStartCmd:
-    'cd backend && uv run --with "langgraph-cli[inmem]" langgraph dev --port 8123 --no-browser --no-reload',
+    'cd backend && uv run --with "langgraph-cli[inmem]" langgraph dev --port 8231 --no-browser --no-reload',
 
   // Demo routes are `<route>/demo`, per frontend/src/app/app.routes.ts.
   demoSuffix: '/demo',
@@ -146,7 +142,7 @@ export const PROJECT: ProjectConfig = {
   // graph, so a run that would have failed on a dead backend fails here rather
   // than inside a recording.
   runtimeWarmPath:
-    process.env.RUNTIME_URL || 'http://localhost:8203/api/copilotkit/info',
+    process.env.RUNTIME_URL || 'http://localhost:8230/api/copilotkit/info',
 };
 
 /** Absolute doc URL for a page's `docPath`. */

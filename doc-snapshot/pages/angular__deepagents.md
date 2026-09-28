@@ -10,9 +10,15 @@ The runtime runs on your server, keeps model credentials out of the browser, and
 <OpsPlatformCTA
   variant="inline"
   title="Take your Angular copilot from local to production"
-  body="Add durable threads, inspection, and managed or self-hosted CopilotKit Intelligence without changing the Angular frontend APIs in this guide."
+  body="Add threads, inspection, and cloud-hosted or self-hosted CopilotKit Intelligence without changing the Angular frontend APIs in this guide."
   surface="docs:angular/quickstart:production"
 />
+
+## Start with your coding agent
+
+Use this prompt to connect your Angular app to Copilot Runtime with the selected agent backend, then verify a working conversation. You can also follow the manual steps below.
+
+Ask your coding agent to follow the setup steps on this page for your selected framework and frontend.
 
 ## What is CopilotKit for Angular?
 
@@ -166,7 +172,7 @@ On localhost, click the Inspector button in the corner of the app.
 
 1. Open **Agents**, then **Agent**. Your agent is listed.
 2. Send a chat message. Open **Agents**, then **AG-UI Events**. Events are moving.
-3. Open **Threads**. The list is unlocked (Intelligence is on), or locked with Enable Intelligence (Intelligence is off).
+3. Open **Rich Threads**. The list is unlocked (Intelligence is on), or locked with Enable Intelligence (Intelligence is off).
 
 More detail: [Inspector](/angular/deepagents/inspector).
 
@@ -177,7 +183,7 @@ More detail: [Inspector](/angular/deepagents/inspector).
 ## Next steps
 
 - [Runtime and backend docs](backend/copilot-runtime): configure the server, secure requests, and deploy without leaving the selected Angular surface.
-- [CopilotKit Intelligence](intelligence/overview): add durable threads, inspection, and cloud-hosted or self-hosted operations.
+- [CopilotKit Intelligence](intelligence/overview): add threads, inspection, and cloud-hosted or self-hosted operations.
 - [Angular task guides](guides/chat-ui): build chat UI, tools, generative UI, interrupts, shared state, threads, memory, attachments, and headless UI.
 - [Angular feature examples](features): find runnable examples and canonical shared Angular source for each supported feature.
 - [Angular API reference](/reference/angular): use components, signals, tools, context, and runtime services.
