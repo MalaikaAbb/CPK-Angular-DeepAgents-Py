@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "docsRoot": "https://docs.copilotkit.ai/angular/deepagents",
-  "syncedAt": "2026-09-23T07:50:26.813Z",
+  "syncedAt": "2026-08-18T06:47:15.670Z",
   "pages": {
     "/angular/deepagents": {
       "file": "angular__deepagents.md",
@@ -14,19 +14,19 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Wed, 23 Sep 2026 07:50:26 GMT"
+      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     },
     "/angular/deepagents/guides/a2ui": {
       "file": "angular__deepagents__guides__a2ui.md",
-      "sha256": "24ad1e1ac938d097b8bb5290f7e68b1bc9e397f4e6dc276a6290e689548d7de6",
-      "bytes": 5829,
+      "sha256": "5db8a61550d566ee893d8e87f6b0d2ee6d007d9b61d39fe81da48573a76649f5",
+      "bytes": 5849,
       "lines": 195,
       "routes": [
         "/a2ui"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Sun, 30 Aug 2026 11:06:19 GMT"
+      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     },
     "/angular/deepagents/guides/chat-ui": {
       "file": "angular__deepagents__guides__chat-ui.md",
@@ -38,19 +38,19 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
     },
     "/angular/deepagents/guides/frontend-tools-generative-ui": {
       "file": "angular__deepagents__guides__frontend-tools-generative-ui.md",
-      "sha256": "c14d6d00b44f495def7cc34c9e500915a8e134fd5752860a0aaefb3e66b8882f",
-      "bytes": 7888,
-      "lines": 236,
+      "sha256": "90c41e8bdc69315b97b023f8938f90c3d2e414c6c9602fa91968c22346974cfe",
+      "bytes": 5732,
+      "lines": 178,
       "routes": [
         "/frontend-tools-generative-ui"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Fri, 04 Sep 2026 07:57:58 GMT"
+      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     },
     "/angular/deepagents/guides/human-in-the-loop": {
       "file": "angular__deepagents__guides__human-in-the-loop.md",
@@ -62,7 +62,7 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Sun, 30 Aug 2026 11:06:19 GMT"
+      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     },
     "/angular/deepagents/guides/shared-state": {
       "file": "angular__deepagents__guides__shared-state.md",
@@ -74,7 +74,7 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
     },
     "/angular/deepagents/guides/threads-memory-attachments-headless": {
       "file": "angular__deepagents__guides__threads-memory-attachments-headless.md",
@@ -89,19 +89,19 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:58 GMT"
     },
     "/angular/deepagents/guides/voice-multimodal": {
       "file": "angular__deepagents__guides__voice-multimodal.md",
-      "sha256": "d3e3b2cd9b6b6b3c346d728f5cc93bcfa81ea806bc691ff8db6e85091e6a46a1",
-      "bytes": 3794,
-      "lines": 111,
+      "sha256": "5b9c319544e083af830fa624969b63e4946a49be46518c7e95f79269f0eb3cb7",
+      "bytes": 4484,
+      "lines": 128,
       "routes": [
         "/voice-multimodal"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:58 GMT"
     },
     "/angular/deepagents/inspector": {
       "file": "angular__deepagents__inspector.md",
@@ -125,11 +125,11 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Wed, 23 Sep 2026 07:50:26 GMT"
+      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     }
   },
   "sitemap": {
-    "fetchedAt": "2026-08-18T06:47:15.670Z",
+    "fetchedAt": "2026-10-12T10:59:56.541Z",
     "urlsUnderRoot": 2,
     "knownUnmapped": [
       "https://docs.copilotkit.ai/angular/deepagents/shared-state/workflow-execution",

@@ -117,10 +117,19 @@ export const NAV: NavGroup[] = [
         title: 'Frontend tools and generative UI',
         docPath: '/angular/deepagents/guides/frontend-tools-generative-ui',
         summary:
-          'A server-side tool call rendered by an Angular component, plus the sandboxed Open Generative UI path.',
+          'A server-side tool call rendered by an Angular component, a display-only component the agent calls to show it, plus the sandboxed Open Generative UI path.',
+        status: 'working',
+      },
+      {
+        path: '/webmcp',
+        hasDemo: true,
+        title: 'WebMCP',
+        docPath: '/angular/deepagents/webmcp',
+        summary:
+          'A frontend tool opted into WebMCP, so one handler serves the CopilotKit agent and browser agents through document.modelContext.',
         status: 'partial',
         statusNote:
-          'All three of the guide’s generative-UI paths run here, including registerComponent, which declares show_incident from the browser with no change to the deepagents graph. The new first section runs, and its published snippet is wrong in four ways. It carries no handler, so core writes an empty tool result and the model is always handed a second turn nobody asked for. It guards on status "in-progress" while the real status is "executing", so the guard never fires and the card paints empty first. The status never reaches "complete" at all, so the gate-on-complete pattern taught higher up the same page would load forever here. And it ships no CSS, so with Angular’s default preserveWhitespaces the card renders as the run-together string INC-4711sev1. Everything is kept verbatim. See Known gaps.',
+          'The CopilotKit agent path runs locally. The WebMCP path needs Chrome 149+ with the origin trial or testing flag; without it document.modelContext is absent and registration is a no-op. searchOrders is a harness stand-in — the guide never defines it.',
       },
       {
         path: '/a2ui',
@@ -169,6 +178,16 @@ export const NAV: NavGroup[] = [
         status: 'broken',
         statusNote:
           'The browser half works: agent.setState updates the store, the UI renders the new priority, and both context panels publish. The run input POSTed to /api/copilotkit carries state and context correctly — and the agent still answers as though neither exists. Verified 31 Aug 2026 by reading the request body.',
+      },
+      {
+        path: '/workflow-execution',
+        title: 'Workflow execution',
+        docPath: '/angular/deepagents/shared-state/workflow-execution',
+        summary:
+          'Splitting LangGraph state into input, output, and internal schemas so only the right properties cross to the frontend.',
+        status: 'reference',
+        statusNote:
+          'Needs a custom LangGraph StateGraph; create_deep_agent has a single state schema. The guide’s Python is not self-contained and its Angular snippet targets an unregistered my_agent. Quoted, not run.',
       },
     ],
   },

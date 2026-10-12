@@ -8,94 +8,125 @@ Holds the 3 most recent dated entries. When a change lands on a fourth
 date, the oldest entry is dropped. Entries are counted, not aged, so a gap of
 weeks between changes does not expire anything.
 
-## 2026-08-30
+## 2026-10-12
 
-### 11:06 UTC — 5 pages, highest severity high
+### 10:59 UTC — 8 pages, highest severity high
 
-**High — Inspector** · _new page_
+**High — A2UI schemas, styling, and recovery**
 
-`/angular/deepagents/inspector` · no route yet · newly tracked
+`/angular/deepagents/guides/a2ui` · route `/a2ui` · under “Choose a schema strategy” · in a `typescript` block
 
-A page the index/quickstart step now links to. It did not exist at the last
-sync, so it is added to the snapshot rather than diffed.
-
-- `@copilotkit/angular` mounts the Inspector itself; `@copilotkit/web-inspector`
-  is a direct dependency, so there is nothing to install or pin.
-- Visibility is controlled by `enableInspector` on `provideCopilotKit`.
-- A hand-written `WebInspector` component, as this page previously described,
-  must be deleted before upgrading past **0.4.0** — its
-  `DestroyRef.onDestroy` unconditionally removes the `cpk-web-inspector`
-  element the framework now drives, and a route change that destroys it takes
-  the Inspector out until a full reload.
-- Nothing to do for production or server rendering.
-
-**High — Angular index and quickstart** · _upstream change_
-
-`/angular/deepagents` and `/angular/deepagents/quickstart` · routes `/`, `/doc-sync` · under "Prerequisites", "Create your Angular app", "Getting started" and "Next steps"
-
-Supported Angular range narrowed to a single major, "Enterprise Intelligence"
-renamed to "CopilotKit Intelligence", and a new final setup step added.
+24 code lines, 1 heading, 19 prose lines changed. The number of fenced code blocks changed.
 
 ````diff
-- - Angular 20, 21, or 22
-+ - Angular 22
-
-- If you don't have one already, pin the CLI to one of the supported majors. This example uses Angular 22:
-+ If you don't have one already, pin the CLI to the supported major:
-
-- body="Add durable threads, inspection, and managed or self-hosted Enterprise Intelligence without changing the Angular frontend APIs in this guide."
-+ body="Add durable threads, inspection, and managed or self-hosted CopilotKit Intelligence without changing the Angular frontend APIs in this guide."
-
-+ <Step>
-+     ### Open Inspector and confirm setup
-+ On localhost, click the Inspector button in the corner of the app.
-+ 1. Open **Agents**, then **Agent**. Your agent is listed.
-+ 2. Send a chat message. Open **Agents**, then **AG-UI Events**. Events are moving.
-+ 3. Open **Threads**. The list is unlocked (Intelligence is on), or locked with Enable Intelligence (Intelligence is off).
-+ More detail: [Inspector](/angular/deepagents/inspector).
-+ </Step>
-
-- - [Enterprise Intelligence](premium/overview): add durable threads, inspection, and cloud-hosted or self-hosted operations.
-+ - [CopilotKit Intelligence](premium/overview): add durable threads, inspection, and cloud-hosted or self-hosted operations.
+- // features/a2ui/a2ui-catalogs.ts
+- const fixedDefinitions = {
++ // features/a2ui/a2ui-definitions.ts
++ export const fixedDefinitions = {
+- };
++ } satisfies A2UICatalogDefinitions;
++ A catalog is required: without one, A2UI stays off even when the runtime
++ enables it, and CopilotKit logs a warning.
 ````
 
-**High — Human-in-the-loop and interrupts** · _upstream change_
+**High — Frontend tools and generative UI**
 
-`/angular/deepagents/guides/human-in-the-loop` · route `/human-in-the-loop` · under "Handle an interrupt"
+`/angular/deepagents/guides/frontend-tools-generative-ui` · route `/frontend-tools-generative-ui` · under “Let the agent display one of your components”
 
-A second, store-based way to read an interrupt was documented, and the
-`injectInterrupt` signature changed from an options object to a positional
-agent id.
+36 code lines, 1 heading, 23 prose lines changed. The number of fenced code blocks changed.
+
+````diff
++ ## Let the agent display one of your components
++ 
++ The simplest generative UI there is, and the only kind that needs nothing on the
++ agent side. `registerComponent` registers a standalone component as a tool the
++ agent can call to show it. The agent decides when, and fills the props.
++ 
++ ```ts title="src/app/incident-card.component.ts"
++ import { Component, input } from "@angular/core";
+````
+
+**High — Human-in-the-loop and interrupts**
+
+`/angular/deepagents/guides/human-in-the-loop` · route `/human-in-the-loop` · under “Human-in-the-loop and interrupts”
+
+26 code lines, 3 headings, 26 prose lines changed. The number of fenced code blocks changed.
 
 ````diff
 - | Interrupt | The backend agent emits an AG-UI interrupt | `injectInterrupt` |
 + | Interrupt | The backend agent emits an AG-UI interrupt | `AgentStore.interruptController`, `injectInterrupt` |
-
 - ## Handle an interrupt
 + ## Handle an interrupt from the store
-+ @let interrupts = store().interruptController;
-+ @if (interrupts.hasInterrupt()) {
-+   <p>{{ interrupts.interrupt()?.message }}</p>
-+   <button (click)="interrupts.resolve({ approved: true })">Approve</button>
-+   <button (click)="interrupts.cancel()">Reject</button>
-+ }
-+ protected readonly store = injectAgentStore("ticketing");
-+ ## Handle an interrupt with a typed controller
-
--   injectInterrupt<ReviewRequest>({ agentId: "default" });
-+   injectInterrupt<ReviewRequest>("default");
++ An interrupt is a state of one conversation: this agent, this thread, this run
++ is waiting for a decision. The store that already exposes that conversation's
++ messages and state exposes its pending interrupt too, so a component that holds
++ a store needs nothing else:
 ````
 
-**High — A2UI** · _upstream change_
+**High — Voice and multimodal input**
 
-`/angular/deepagents/guides/a2ui` · route `/a2ui` · under "Angular support boundaries"
+`/angular/deepagents/guides/voice-multimodal` · route `/voice-multimodal` · under “Accept voice input”
 
-1 prose line changed, tracking the same Angular-22-only policy.
+5 code lines, 1 heading, 15 prose lines changed. The number of fenced code blocks changed.
 
 ````diff
-- - **Hashbrown is unsupported.** The stable Hashbrown Angular package does not support the complete Angular 20 through 22 policy.
-+ - **Hashbrown is unsupported.** The stable Hashbrown Angular package does not support the Angular 22 policy.
+- access. Your Runtime must also have transcription configured; a visible
+- microphone does not make an unavailable transcription service succeed.
++ access.
++ 
++ ### Configure Runtime transcription
++ 
++ Follow the [Voice backend setup](/angular/deepagents/guides/voice-multimodal#backend) to add a dedicated Runtime
++ route and transcription service. Keep speech-provider credentials separate
 ````
+
+**Medium — Introduction**
+
+`/angular/deepagents` · routes `/`, `/doc-sync` · under “Angular”
+
+2 headings, 24 prose lines changed.
+
+````diff
+- body="Add durable threads, inspection, and managed or self-hosted Enterprise Intelligence without changing the Angular frontend APIs in this guide."
++ body="Add threads, inspection, and cloud-hosted or self-hosted CopilotKit Intelligence without changing the Angular frontend APIs in this guide."
++ ## Start with your coding agent
++ 
++ Use this prompt to connect your Angular app to Copilot Runtime with the selected agent backend, then verify a working conversation. You can also follow the manual steps below.
++ 
++ Ask your coding agent to follow the setup steps on this page for your selected framework and frontend.
++ 
+````
+
+**Medium — Quickstart**
+
+`/angular/deepagents/quickstart` · route `/quickstart` · under “Angular”
+
+2 headings, 24 prose lines changed.
+
+````diff
+- body="Add durable threads, inspection, and managed or self-hosted Enterprise Intelligence without changing the Angular frontend APIs in this guide."
++ body="Add threads, inspection, and cloud-hosted or self-hosted CopilotKit Intelligence without changing the Angular frontend APIs in this guide."
++ ## Start with your coding agent
++ 
++ Use this prompt to connect your Angular app to Copilot Runtime with the selected agent backend, then verify a working conversation. You can also follow the manual steps below.
++ 
++ Ask your coding agent to follow the setup steps on this page for your selected framework and frontend.
++ 
+````
+
+**Info — Workflow execution**
+
+`/angular/deepagents/shared-state/workflow-execution` · route `/workflow-execution`
+
+Now tracked for the first time.
+
+**Info — WebMCP**
+
+`/angular/deepagents/webmcp` · route `/webmcp`
+
+Now tracked for the first time.
+
+---
 
 ## 2026-08-18
 

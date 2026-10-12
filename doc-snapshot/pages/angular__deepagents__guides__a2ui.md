@@ -21,8 +21,8 @@ the generated interface to a specific domain and set of shapes.
 The flight example keeps its component vocabulary deliberately small:
 
 ```typescript
-// features/a2ui/a2ui-catalogs.ts
-const fixedDefinitions = {
+// features/a2ui/a2ui-definitions.ts
+export const fixedDefinitions = {
   Card: { props: z.object({ child: z.string() }) },
   Title: { props: z.object({ text: dynamicString }) },
   Airport: { props: z.object({ code: dynamicString }) },
@@ -36,7 +36,7 @@ const fixedDefinitions = {
       action: z.unknown().optional(),
     }),
   },
-};
+} satisfies A2UICatalogDefinitions;
 ```
 
 Give each catalog a stable `catalogId`, then select it in the `a2ui` option
@@ -77,6 +77,35 @@ provideCopilotKit({
 });
 ```
 
+A catalog is required: without one, A2UI stays off even when the runtime
+enables it, and CopilotKit logs a warning.
+
+### Use existing web components
+
+A catalog entry can also be a Custom Element, such as a component from an
+existing design system. Pass `{ tagName, element }` instead of an Angular
+component, and mix both kinds freely:
+
+```ts title="src/app/a2ui-catalog.ts"
+const catalog = createAngularCatalog(
+  {
+    Badge: { props: z.object({ label: z.string() }) },
+    Panel: { props: z.object({ children: ChildListSchema }) },
+  },
+  {
+    Badge: { tagName: "acme-badge", element: AcmeBadge },
+    Panel: PanelComponent,
+  },
+  { includeBasicCatalog: true },
+);
+```
+
+CopilotKit registers the element, renders it in place of the node, and assigns
+the node's A2UI `ComponentContext` to its `context` property on every update.
+The element reads its props and writes to the data model through that context,
+for example with web_core's `GenericBinder`. Elements render in the browser
+only, not during server rendering.
+
 By default, CopilotKit includes the catalog schema in agent context. Set
 `includeSchema: false` only when the server already supplies equivalent schema
 and generation instructions. Otherwise the agent cannot reliably know which
@@ -84,7 +113,7 @@ components and props are valid.
 
 ## Style rendered components
 
-Catalog renderers return web-component templates with application-owned class
+Catalog components are Angular components with application-owned class
 names. Style those classes in the global stylesheet so generated surfaces and
 their nested elements receive the same rules:
 
@@ -95,11 +124,6 @@ their nested elements receive the same rules:
   flex-wrap: wrap;
   align-items: stretch;
   width: 100%;
-}
-
-.a2ui-row > * {
-  flex: 1 1 10rem;
-  min-width: 0;
 }
 
 .a2ui-column {
