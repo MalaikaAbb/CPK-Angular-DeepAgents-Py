@@ -1,32 +1,32 @@
 {
   "schema": 1,
   "docsRoot": "https://docs.copilotkit.ai/angular/deepagents",
-  "syncedAt": "2026-08-18T06:47:15.670Z",
+  "syncedAt": "2026-10-12T10:59:56.541Z",
   "pages": {
     "/angular/deepagents": {
       "file": "angular__deepagents.md",
-      "sha256": "f7a8f7ee65bd121d4f3fd514895ec3d40718dfe243de228e99248ad1e6b3f800",
-      "bytes": 6733,
-      "lines": 172,
+      "sha256": "97604ed28be11d733c613c090e04f26643ecc2ee06baa3aa6cb8aed0f92935df",
+      "bytes": 7457,
+      "lines": 191,
       "routes": [
         "/",
         "/doc-sync"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
     },
     "/angular/deepagents/guides/a2ui": {
       "file": "angular__deepagents__guides__a2ui.md",
-      "sha256": "5db8a61550d566ee893d8e87f6b0d2ee6d007d9b61d39fe81da48573a76649f5",
-      "bytes": 5849,
-      "lines": 195,
+      "sha256": "da88972c5bc7f6080aa029e13aff22911d2ab47bc81ed914a8229c0be0449326",
+      "bytes": 6834,
+      "lines": 219,
       "routes": [
         "/a2ui"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
     },
     "/angular/deepagents/guides/chat-ui": {
       "file": "angular__deepagents__guides__chat-ui.md",
@@ -38,31 +38,31 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
     },
     "/angular/deepagents/guides/frontend-tools-generative-ui": {
       "file": "angular__deepagents__guides__frontend-tools-generative-ui.md",
-      "sha256": "90c41e8bdc69315b97b023f8938f90c3d2e414c6c9602fa91968c22346974cfe",
-      "bytes": 5732,
-      "lines": 178,
+      "sha256": "bdaeb88e441ef2e1a8265a29e44d8e190691c5bf465252abe88553728ad5b5c4",
+      "bytes": 7892,
+      "lines": 236,
       "routes": [
         "/frontend-tools-generative-ui"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
     },
     "/angular/deepagents/guides/human-in-the-loop": {
       "file": "angular__deepagents__guides__human-in-the-loop.md",
-      "sha256": "bc6b763af2b18f699767b2acc594e4ebe90f36074ba162057740d24a9df150ae",
-      "bytes": 7176,
-      "lines": 227,
+      "sha256": "f2dd576c7dbde5ad637e11c029340762cf9c1358664c92f36a74b3f3759830ad",
+      "bytes": 8992,
+      "lines": 274,
       "routes": [
         "/human-in-the-loop"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
     },
     "/angular/deepagents/guides/shared-state": {
       "file": "angular__deepagents__guides__shared-state.md",
@@ -74,7 +74,7 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
     },
     "/angular/deepagents/guides/threads-memory-attachments-headless": {
       "file": "angular__deepagents__guides__threads-memory-attachments-headless.md",
@@ -89,35 +89,59 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:58 GMT"
     },
     "/angular/deepagents/guides/voice-multimodal": {
       "file": "angular__deepagents__guides__voice-multimodal.md",
-      "sha256": "d3e3b2cd9b6b6b3c346d728f5cc93bcfa81ea806bc691ff8db6e85091e6a46a1",
-      "bytes": 3794,
-      "lines": 111,
+      "sha256": "5b9c319544e083af830fa624969b63e4946a49be46518c7e95f79269f0eb3cb7",
+      "bytes": 4484,
+      "lines": 128,
       "routes": [
         "/voice-multimodal"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:58 GMT"
     },
     "/angular/deepagents/quickstart": {
       "file": "angular__deepagents__quickstart.md",
-      "sha256": "f7a8f7ee65bd121d4f3fd514895ec3d40718dfe243de228e99248ad1e6b3f800",
-      "bytes": 6733,
-      "lines": 172,
+      "sha256": "97604ed28be11d733c613c090e04f26643ecc2ee06baa3aa6cb8aed0f92935df",
+      "bytes": 7457,
+      "lines": 191,
       "routes": [
         "/quickstart"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
+    },
+    "/angular/deepagents/shared-state/workflow-execution": {
+      "file": "angular__deepagents__shared-state__workflow-execution.md",
+      "sha256": "c5136e4b9dded63767f8890d696172b686cbebbf9cc0a3b540ee02c4565b7e7c",
+      "bytes": 5667,
+      "lines": 154,
+      "routes": [
+        "/workflow-execution"
+      ],
+      "status": "ok",
+      "age": 0,
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
+    },
+    "/angular/deepagents/webmcp": {
+      "file": "angular__deepagents__webmcp.md",
+      "sha256": "0c986cd73074809440e15da67e4ac0c3cda4eb38ce2d1940ad99f38fb15f4a4b",
+      "bytes": 7530,
+      "lines": 169,
+      "routes": [
+        "/webmcp"
+      ],
+      "status": "ok",
+      "age": 0,
+      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
     }
   },
   "sitemap": {
-    "fetchedAt": "2026-08-18T06:47:15.670Z",
+    "fetchedAt": "2026-10-12T10:59:56.541Z",
     "urlsUnderRoot": 2,
     "knownUnmapped": [
       "https://docs.copilotkit.ai/angular/deepagents/shared-state/workflow-execution"

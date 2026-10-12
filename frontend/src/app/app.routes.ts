@@ -22,6 +22,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/demos').then((m) => m.ToolsDemo),
   },
   {
+    path: 'webmcp/demo',
+    loadComponent: () => import('./pages/demos').then((m) => m.WebmcpDemo),
+  },
+  {
     path: 'a2ui/demo',
     loadComponent: () => import('./pages/demos').then((m) => m.A2uiDemo),
   },
@@ -66,6 +70,7 @@ export const routes: Routes = [
         path: 'frontend-tools-generative-ui',
         loadComponent: () => import('./pages/frontend-tools-generative-ui'),
       },
+      { path: 'webmcp', loadComponent: () => import('./pages/webmcp') },
       { path: 'a2ui', loadComponent: () => import('./pages/a2ui') },
       {
         path: 'voice-multimodal',
@@ -78,6 +83,10 @@ export const routes: Routes = [
       {
         path: 'shared-state',
         loadComponent: () => import('./pages/shared-state'),
+      },
+      {
+        path: 'workflow-execution',
+        loadComponent: () => import('./pages/workflow-execution'),
       },
       { path: 'threads', loadComponent: () => import('./pages/threads') },
       { path: 'memory', loadComponent: () => import('./pages/memory') },

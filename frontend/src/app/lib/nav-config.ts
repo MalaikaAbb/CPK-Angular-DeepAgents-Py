@@ -110,6 +110,17 @@ export const NAV: NavGroup[] = [
         status: 'working',
       },
       {
+        path: '/webmcp',
+        hasDemo: true,
+        title: 'WebMCP',
+        docPath: '/angular/deepagents/webmcp',
+        summary:
+          'A frontend tool opted into WebMCP, so one handler serves the CopilotKit agent and browser agents through document.modelContext.',
+        status: 'partial',
+        statusNote:
+          'The CopilotKit agent path runs locally. The WebMCP path needs Chrome 149+ with the origin trial or testing flag; without it document.modelContext is absent and registration is a no-op. searchOrders is a harness stand-in — the guide never defines it.',
+      },
+      {
         path: '/a2ui',
         hasDemo: true,
         title: 'A2UI schemas, styling, and recovery',
@@ -150,6 +161,16 @@ export const NAV: NavGroup[] = [
         summary:
           'Reading and writing agent state through injectAgentStore, and publishing read-only app context two ways.',
         status: 'working',
+      },
+      {
+        path: '/workflow-execution',
+        title: 'Workflow execution',
+        docPath: '/angular/deepagents/shared-state/workflow-execution',
+        summary:
+          'Splitting LangGraph state into input, output, and internal schemas so only the right properties cross to the frontend.',
+        status: 'reference',
+        statusNote:
+          'Needs a custom LangGraph StateGraph; create_deep_agent has a single state schema. The guide’s Python is not self-contained and its Angular snippet targets an unregistered my_agent. Quoted, not run.',
       },
     ],
   },
