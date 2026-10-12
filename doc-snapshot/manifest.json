@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "docsRoot": "https://docs.copilotkit.ai/angular/deepagents",
-  "syncedAt": "2026-10-12T10:59:56.541Z",
+  "syncedAt": "2026-08-18T06:47:15.670Z",
   "pages": {
     "/angular/deepagents": {
       "file": "angular__deepagents.md",
@@ -14,19 +14,19 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
+      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     },
     "/angular/deepagents/guides/a2ui": {
       "file": "angular__deepagents__guides__a2ui.md",
-      "sha256": "da88972c5bc7f6080aa029e13aff22911d2ab47bc81ed914a8229c0be0449326",
-      "bytes": 6834,
-      "lines": 219,
+      "sha256": "5db8a61550d566ee893d8e87f6b0d2ee6d007d9b61d39fe81da48573a76649f5",
+      "bytes": 5849,
+      "lines": 195,
       "routes": [
         "/a2ui"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
+      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     },
     "/angular/deepagents/guides/chat-ui": {
       "file": "angular__deepagents__guides__chat-ui.md",
@@ -42,15 +42,15 @@
     },
     "/angular/deepagents/guides/frontend-tools-generative-ui": {
       "file": "angular__deepagents__guides__frontend-tools-generative-ui.md",
-      "sha256": "bdaeb88e441ef2e1a8265a29e44d8e190691c5bf465252abe88553728ad5b5c4",
-      "bytes": 7892,
-      "lines": 236,
+      "sha256": "90c41e8bdc69315b97b023f8938f90c3d2e414c6c9602fa91968c22346974cfe",
+      "bytes": 5732,
+      "lines": 178,
       "routes": [
         "/frontend-tools-generative-ui"
       ],
       "status": "ok",
       "age": 0,
-      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
+      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     },
     "/angular/deepagents/guides/human-in-the-loop": {
       "file": "angular__deepagents__guides__human-in-the-loop.md",
@@ -62,7 +62,7 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
+      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     },
     "/angular/deepagents/guides/shared-state": {
       "file": "angular__deepagents__guides__shared-state.md",
@@ -103,6 +103,18 @@
       "age": 0,
       "date": "Mon, 12 Oct 2026 10:59:58 GMT"
     },
+    "/angular/deepagents/inspector": {
+      "file": "angular__deepagents__inspector.md",
+      "sha256": "bd26054156e6b631da340e377739c1040252934f16a68a985f86a9a6cccdf03b",
+      "bytes": 2961,
+      "lines": 72,
+      "routes": [
+        "/inspector"
+      ],
+      "status": "ok",
+      "age": 0,
+      "date": "Sun, 30 Aug 2026 11:24:20 GMT"
+    },
     "/angular/deepagents/quickstart": {
       "file": "angular__deepagents__quickstart.md",
       "sha256": "97604ed28be11d733c613c090e04f26643ecc2ee06baa3aa6cb8aed0f92935df",
@@ -113,38 +125,68 @@
       ],
       "status": "ok",
       "age": 0,
-      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
-    },
-    "/angular/deepagents/shared-state/workflow-execution": {
-      "file": "angular__deepagents__shared-state__workflow-execution.md",
-      "sha256": "c5136e4b9dded63767f8890d696172b686cbebbf9cc0a3b540ee02c4565b7e7c",
-      "bytes": 5667,
-      "lines": 154,
-      "routes": [
-        "/workflow-execution"
-      ],
-      "status": "ok",
-      "age": 0,
-      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
-    },
-    "/angular/deepagents/webmcp": {
-      "file": "angular__deepagents__webmcp.md",
-      "sha256": "0c986cd73074809440e15da67e4ac0c3cda4eb38ce2d1940ad99f38fb15f4a4b",
-      "bytes": 7530,
-      "lines": 169,
-      "routes": [
-        "/webmcp"
-      ],
-      "status": "ok",
-      "age": 0,
-      "date": "Mon, 12 Oct 2026 10:59:57 GMT"
+      "date": "Tue, 18 Aug 2026 06:47:16 GMT"
     }
   },
   "sitemap": {
     "fetchedAt": "2026-10-12T10:59:56.541Z",
     "urlsUnderRoot": 2,
     "knownUnmapped": [
-      "https://docs.copilotkit.ai/angular/deepagents/shared-state/workflow-execution"
+      "https://docs.copilotkit.ai/angular/deepagents/shared-state/workflow-execution",
+      "https://docs.copilotkit.ai/angular/deepagents/using-these-docs",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/overview",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/threads-explained",
+      "https://docs.copilotkit.ai/angular/deepagents/webmcp",
+      "https://docs.copilotkit.ai/angular/deepagents/server-tools",
+      "https://docs.copilotkit.ai/angular/deepagents/mcp-servers",
+      "https://docs.copilotkit.ai/angular/deepagents/model-selection",
+      "https://docs.copilotkit.ai/angular/deepagents/advanced-configuration",
+      "https://docs.copilotkit.ai/angular/deepagents/multi-agent/subagents",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/quickstart",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/intelligence-platform",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/plans",
+      "https://docs.copilotkit.ai/angular/deepagents/learning",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/learned-skills",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/memories",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/analytics",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/channels",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/managed-intelligence-platform",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/self-hosting",
+      "https://docs.copilotkit.ai/angular/deepagents/intelligence/self-hosting-ecs",
+      "https://docs.copilotkit.ai/angular/deepagents/backend/copilot-runtime",
+      "https://docs.copilotkit.ai/angular/deepagents/backend/runtime-endpoints",
+      "https://docs.copilotkit.ai/angular/deepagents/backend/custom-agent",
+      "https://docs.copilotkit.ai/angular/deepagents/backend/agent-runner",
+      "https://docs.copilotkit.ai/angular/deepagents/backend/message-history",
+      "https://docs.copilotkit.ai/angular/deepagents/backend/self-managed-agents",
+      "https://docs.copilotkit.ai/angular/deepagents/backend/ag-ui",
+      "https://docs.copilotkit.ai/angular/deepagents/runtime-server-adapter",
+      "https://docs.copilotkit.ai/angular/deepagents/auth",
+      "https://docs.copilotkit.ai/angular/deepagents/deploy/agentcore",
+      "https://docs.copilotkit.ai/angular/deepagents/deploy/aws-lambda",
+      "https://docs.copilotkit.ai/angular/deepagents/deploy/langsmith",
+      "https://docs.copilotkit.ai/angular/deepagents/concepts/architecture",
+      "https://docs.copilotkit.ai/angular/deepagents/concepts/generative-ui-overview",
+      "https://docs.copilotkit.ai/angular/deepagents/concepts/oss-vs-enterprise",
+      "https://docs.copilotkit.ai/angular/deepagents/agentic-protocols/index",
+      "https://docs.copilotkit.ai/angular/deepagents/agentic-protocols/ag-ui",
+      "https://docs.copilotkit.ai/angular/deepagents/agentic-protocols/ag-ui-middleware",
+      "https://docs.copilotkit.ai/angular/deepagents/agentic-protocols/a2a",
+      "https://docs.copilotkit.ai/angular/deepagents/features",
+      "https://docs.copilotkit.ai/angular/deepagents/guides/troubleshooting",
+      "https://docs.copilotkit.ai/angular/deepagents/contributing/code-contributions",
+      "https://docs.copilotkit.ai/angular/deepagents/contributing/docs-contributions",
+      "https://docs.copilotkit.ai/angular/deepagents/troubleshooting/common-issues",
+      "https://docs.copilotkit.ai/angular/deepagents/troubleshooting/debug-mode",
+      "https://docs.copilotkit.ai/angular/deepagents/troubleshooting/event-inspector",
+      "https://docs.copilotkit.ai/angular/deepagents/telemetry"
+    ]
+  },
+  "coverage": {
+    "ignoreRoutes": [
+      "/a2ui",
+      "/attachments",
+      "/memory"
     ]
   }
 }

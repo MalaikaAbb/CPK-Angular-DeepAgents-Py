@@ -1,0 +1,27 @@
+1
+00:00:01,120 --> 00:00:04,880
+So I'm working on DPGs with the front end of regular and clean interesting
+
+2
+00:00:05,200 --> 00:00:09,600
+uh threads and now let me show you the code,
+
+3
+00:00:09,840 --> 00:00:12,080
+then the packages,
+
+4
+00:00:13,600 --> 00:00:18,123
+then the code which I have. and also
+
+5
+00:00:21,003 --> 00:00:26,123
+the components oh
+
+6
+00:00:26,124 --> 00:00:30,283
+let me show you that it's not working and if I try the pineappleization
+
+7
+00:00:30,603 --> 00:00:31,643
+it doesn't work as well so

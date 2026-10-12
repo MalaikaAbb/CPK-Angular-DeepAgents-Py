@@ -1,0 +1,23 @@
+{
+  "actions.ts": "c1af361fc1073659",
+  "compare.ts": "65742af33faf58fa",
+  "console-capture.ts": "76c5bc6a54a08600",
+  "diagnostics.ts": "ac12bf571af3c267",
+  "doctor.ts": "2ecc7987fa865b20",
+  "engine.ts": "3ed987a76ea6d7db",
+  "failure-evidence.ts": "9728309480bd62f5",
+  "ide/generator.ts": "05c94a4165ee28ba",
+  "issue-note.ts": "f0dba903915ab323",
+  "overlays/alert-dialog.ts": "1558c8ec248df353",
+  "overlays/caption.ts": "1f1c6cd5a8969b40",
+  "overlays/cursor.ts": "a3141911df7043c0",
+  "overlays/devtools-console.ts": "dfe349ebd7ebd5f9",
+  "overlays/human.ts": "aa9fff385bba0465",
+  "overlays/notepad.ts": "2028da66cf4ad394",
+  "overlays/taskbar.ts": "8e23df722c91526c",
+  "prewarm.ts": "6398552569c74596",
+  "select.ts": "0ef50b448785aeb8",
+  "timeouts.ts": "ba4e52b004b4fa04",
+  "types.ts": "5673b9f915f6d0cd",
+  "versions.ts": "524cafa17d36a91d"
+}

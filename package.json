@@ -1,0 +1,16 @@
+{
+  "name": "copilotkit-deepagents-python-angular-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "record": "npm --prefix autorecorder run record --",
+    "record:all": "npm --prefix autorecorder run record",
+    "record:issues": "npm --prefix autorecorder run record -- --pages=issues",
+    "record:list": "npm --prefix autorecorder run record -- --list",
+    "record:doctor": "npm --prefix autorecorder run doctor",
+    "record:doctor:online": "npm --prefix autorecorder run doctor:online",
+    "manifest": "npm --prefix autorecorder run manifest",
+    "manifest:check": "npm --prefix autorecorder run manifest:check"
+  }
+}

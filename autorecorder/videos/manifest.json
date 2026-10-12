@@ -1,0 +1,175 @@
+{
+  "generatedAt": "2026-08-28T16:29:41.132Z",
+  "framework": "DeepAgents (Python) + Angular",
+  "videoPrefix": "DAPY-angular",
+  "clips": {
+    "quickstart": {
+      "order": 1,
+      "id": "quickstart",
+      "name": "Quickstart",
+      "file": "DAPY-angular-01-Quickstart.webm",
+      "sources": [
+        "frontend/VERSIONS.md",
+        "frontend/package.json",
+        "frontend/src/app/features/quickstart/quickstart-chat.ts",
+        "frontend/server.ts",
+        "backend/main.py"
+      ],
+      "sourceSha": "0c6f3d995d4a",
+      "recordedAt": "2026-08-28T16:08:17.282Z",
+      "bytes": 4052387,
+      "sha256": "c713c2504bfa",
+      "status": "current"
+    },
+    "chat-ui": {
+      "order": 2,
+      "id": "chat-ui",
+      "name": "Guides - Chat UI and customization",
+      "file": "DAPY-angular-02-ChatUi.webm",
+      "sources": [
+        "frontend/src/app/features/chat-ui/chat-ui-demo.component.ts",
+        "frontend/src/app/features/chat-ui/custom-assistant-message.component.ts"
+      ],
+      "sourceSha": "7f65324dbd72",
+      "recordedAt": "2026-08-28T16:10:55.140Z",
+      "bytes": 8415497,
+      "sha256": "dbb4dbc2ac48",
+      "status": "current"
+    },
+    "frontend-tools-generative-ui": {
+      "order": 3,
+      "id": "frontend-tools-generative-ui",
+      "name": "Guides - Frontend tools and generative UI",
+      "file": "DAPY-angular-03-FrontendToolsGenerativeUi.webm",
+      "sources": [
+        "frontend/src/app/features/tools/tools-chat.component.ts",
+        "frontend/src/app/features/tools/weather-card.component.ts",
+        "backend/main.py"
+      ],
+      "sourceSha": "14ed892bcd50",
+      "recordedAt": "2026-08-28T16:12:05.866Z",
+      "bytes": 4561297,
+      "sha256": "df82bf41e97e",
+      "status": "current"
+    },
+    "a2ui": {
+      "order": 4,
+      "id": "a2ui",
+      "name": "Guides - A2UI schemas, styling, and recovery",
+      "file": "DAPY-angular-04-A2ui.webm",
+      "sources": [
+        "frontend/src/app/features/a2ui/a2ui-chat.component.ts",
+        "frontend/src/app/app.config.ts",
+        "frontend/server.ts"
+      ],
+      "sourceSha": "e5237d8b702f",
+      "recordedAt": "2026-08-28T16:14:54.634Z",
+      "bytes": 8180560,
+      "sha256": "cd29a22f1589",
+      "status": "current"
+    },
+    "voice-multimodal": {
+      "order": 5,
+      "id": "voice-multimodal",
+      "name": "Guides - Voice and multimodal input",
+      "file": "DAPY-angular-05-VoiceMultimodal.webm",
+      "sources": [
+        "frontend/src/app/features/media/voice-chat.component.ts"
+      ],
+      "sourceSha": "64dfb230f9ae",
+      "recordedAt": "2026-08-28T16:18:24.876Z",
+      "bytes": 9708991,
+      "sha256": "35d4ba2eadb4",
+      "status": "current"
+    },
+    "human-in-the-loop": {
+      "order": 6,
+      "id": "human-in-the-loop",
+      "name": "Guides - Human-in-the-loop and interrupts",
+      "file": "DAPY-angular-06-HumanInTheLoop.webm",
+      "sources": [
+        "frontend/src/app/features/hitl/approval-tools.service.ts",
+        "frontend/src/app/features/hitl/approval-card.component.ts"
+      ],
+      "sourceSha": "7db007000425",
+      "recordedAt": "2026-08-28T16:19:13.371Z",
+      "bytes": 2906189,
+      "sha256": "a36db827dad3",
+      "status": "current"
+    },
+    "shared-state": {
+      "order": 7,
+      "id": "shared-state",
+      "name": "Guides - Shared state and agent context",
+      "file": "DAPY-angular-07-SharedState.webm",
+      "sources": [
+        "frontend/src/app/features/shared-state/workspace.component.ts",
+        "frontend/src/app/features/shared-state/account-context.component.ts"
+      ],
+      "sourceSha": "7d0f2d089b21",
+      "recordedAt": "2026-08-28T16:29:21.940Z",
+      "bytes": 3544752,
+      "sha256": "d0624753dd18",
+      "status": "new"
+    },
+    "threads": {
+      "order": 8,
+      "id": "threads",
+      "name": "Threads",
+      "file": "DAPY-angular-08-Threads.webm",
+      "sources": [
+        "frontend/src/app/features/threads/thread-list.component.ts",
+        "frontend/src/app/features/threads/conversations.component.ts",
+        "frontend/src/app/features/threads/threads-demo.component.ts"
+      ],
+      "sourceSha": "ab7c03d14d2b",
+      "recordedAt": "2026-08-28T16:29:22.214Z",
+      "bytes": 2907861,
+      "sha256": "d19458cce0c8",
+      "status": "new"
+    },
+    "memory": {
+      "order": 9,
+      "id": "memory",
+      "name": "Memory",
+      "file": "DAPY-angular-09-Memory.webm",
+      "sources": [
+        "frontend/src/app/features/memory/memory-list.component.ts",
+        "frontend/src/app/features/memory/memory-demo.component.ts"
+      ],
+      "sourceSha": "561ae8a11fd0",
+      "recordedAt": "2026-08-28T16:25:43.292Z",
+      "bytes": 8016509,
+      "sha256": "b4e156990a09",
+      "status": "current"
+    },
+    "attachments": {
+      "order": 10,
+      "id": "attachments",
+      "name": "Attachments",
+      "file": "DAPY-angular-10-Attachments.webm",
+      "sources": [
+        "frontend/src/app/features/attachments/media-chat.component.ts"
+      ],
+      "sourceSha": "fd7a7fbb6afd",
+      "recordedAt": "2026-08-28T16:26:48.696Z",
+      "bytes": 3058582,
+      "sha256": "9a5834d53820",
+      "status": "current"
+    },
+    "headless": {
+      "order": 11,
+      "id": "headless",
+      "name": "Headless UI",
+      "file": "DAPY-angular-11-HeadlessUi.webm",
+      "sources": [
+        "frontend/src/app/features/headless/headless-chat.component.ts"
+      ],
+      "sourceSha": "7b02f3d4d4b1",
+      "recordedAt": "2026-08-28T16:27:54.849Z",
+      "bytes": 3790107,
+      "sha256": "5f7be91dc703",
+      "status": "current"
+    }
+  }
+}

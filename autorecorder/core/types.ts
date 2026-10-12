@@ -1,0 +1,229 @@
+import { type Page } from 'playwright';
+import { PROJECT, demoUrlFor, docUrlFor } from '../config/project.config';
+import { type IdeTabConfig } from './ide/generator';
+
+export { type IdeTabConfig };
+
+/**
+ * A defect this page is known to reproduce.
+ *
+ * Some repos exist to document a working integration; this one also exists to
+ * document a broken one. A page carrying this is *expected* to misbehave, so
+ * the run reports it as `[ISSUE]` rather than `[FAIL]` and the process still
+ * exits 0 -- a run that fails every time for seven known defects is a run
+ * nobody reads. What still fails is a route that 404s, a demo that
+ * renders no chat surface, or an IDE view that cannot be built: those are
+ * breaks in this repo, not in the thing under test.
+ *
+ * The fields are the QA report's own fields, so the note the recorder types
+ * into Notepad on screen and the row that ends up in the QA report are the
+ * same text, written once.
+ */
+export interface KnownIssue {
+  /** Doc-nav path to the surface, e.g. 'Deep Agents - App control - Shared state - Writing agent state'. */
+  area: string;
+
+  /** What actually happens. One or two sentences, present tense. */
+  problem: string;
+
+  /** What the reader loses because of it. */
+  impact: string;
+
+  /** Best current theory. Say "unknown" rather than inventing one. */
+  likelyCause: string;
+
+  /**
+   * Set when the defect is that the agent never answers at all. Without it,
+   * agent silence is a recording failure; with it, silence is the finding and
+   * the take reports `[ISSUE]` (silence counts as `ctx.reproduced`).
+   */
+  expectsNoResponse?: boolean;
+}
+
+/**
+ * What an adaptation writes in `config/pages.config.ts`.
+ *
+ * Deliberately smaller than PageRecordConfig: URLs and filenames are derived
+ * rather than repeated, so no entry can drift onto another framework's docs and
+ * the video numbering always matches nav order.
+ */
+export interface PageDefinition {
+  /** CLI id, also the `--<id>` flag. Must be unique. */
+  id: string;
+
+  /** Human title for logs and the summary table. */
+  name: string;
+
+  /** Video filename stem: `<videoPrefix>-<NN>-<videoName>.webm`. */
+  videoName: string;
+
+  /** Appended to `PROJECT.docBaseUrl`. Query strings are fine. */
+  docPath: string;
+
+  /** Appended to `PROJECT.frontendUrl`, then `PROJECT.demoSuffix`. */
+  route: string;
+
+  /** Repo-relative source file the simulated IDE shows. */
+  ideFile: string;
+
+  /** Inclusive highlight range in `ideFile`. Guarded by `npm run doctor`. */
+  startLine: number;
+  endLine: number;
+
+  /** Extra IDE tabs to switch through, each with its own range. */
+  extraTabs?: IdeTabConfig[];
+
+  /** Prompt to send. For multi-turn pages this is the first one. */
+  prompt: string;
+
+  /** Ordered prompts for pages driving several turns or tabs. */
+  prompts?: string[];
+
+  /** Reading pause after the reply finishes streaming. */
+  waitAfterPromptMs?: number;
+
+  /**
+   * The defect this page reproduces, when it reproduces one. Presence flips the
+   * take's outcome to `[ISSUE]` and is carried into RECORD_RESULTS.json.
+   */
+  knownIssue?: KnownIssue;
+
+  /** Per-page overrides of the recorder's fixed waits. See `RecorderTimeouts`. */
+  timeouts?: Partial<RecorderTimeouts>;
+
+  /**
+   * The take, as data. Pages whose handler was "send the prompt, rest the
+   * cursor on the thing under test, check it rendered" describe that here and
+   * use the standard handler; a bespoke handler in actions/ is only for pages
+   * whose failure diagnosis needs code (A2UI's two reasons, the write page's
+   * button-first flow).
+   */
+  demo?: DemoScript;
+}
+
+/** A place to rest the cursor: a selector (first visible match) or fixed coordinates. */
+export type DemoGlideTarget =
+  | string
+  | { selector: string; beatMs?: number; offset?: { x: number; y: number } }
+  | { x: number; y: number; beatMs?: number };
+
+/** A verdict on what the page shows once the reply is in. */
+export interface DemoCheck {
+  /** Playwright selector; `text=...` allowed. First match unless `last` is set. */
+  selector: string;
+  last?: boolean;
+  /** Pass when the element's text contains every entry (case-insensitive). */
+  contains?: string | string[];
+  /** Pass when the element is NOT visible. */
+  absent?: boolean;
+  /** Pass when the element's enabled state matches. */
+  enabled?: boolean;
+  timeoutMs?: number;
+  /** A failed check is a defect (`fail`) or a note on the clip (`warn`, default). */
+  severity?: 'fail' | 'warn';
+  /** Logged on a pass. */
+  ok?: string;
+  /** Reported on a miss. `{found}`/`{total}` expand for `contains` lists; `{text}` is what was read. */
+  message: string;
+}
+
+export interface DemoScript {
+  /** Before the prompt: rest on these, in order. Missing targets are skipped. */
+  before?: DemoGlideTarget[];
+  /** Composer submit timeout. */
+  sendTimeoutMs?: number;
+  /** Capture the browser alert the prompt provokes; `missing` is the warning if none fires. */
+  alert?: { missing: string };
+  /**
+   * After the prompt: the thing under test. Waited for, then rested on. If
+   * `required` is set and it never renders, that message is the take's defect.
+   */
+  render?: { selector: string; last?: boolean; timeoutMs?: number; beatMs?: number; required?: string };
+  /** Click this once `render` (or the prompt) is done, then wait for the follow-up reply. */
+  click?: { selector: string; missing: string; beatMs?: number };
+  /** After the prompt, before the reply finishes: rest on these, in order. */
+  glideTo?: DemoGlideTarget[];
+  /** Once the reply has finished. */
+  checks?: DemoCheck[];
+}
+
+/** A page definition with everything resolved. What the engine consumes. */
+/** A page definition with everything resolved. What the engine consumes. */
+export interface PageRecordConfig extends PageDefinition {
+  docUrl: string;
+  demoUrl: string;
+  filename: string;
+  /** 1-based position in the registry, used for the filename index. */
+  order: number;
+}
+
+/**
+ * Resolves declarative page definitions into what the engine runs.
+ *
+ * Called once by `config/pages.config.ts`; nothing else should build a
+ * PageRecordConfig by hand, or the derived-URL guarantee stops holding.
+ */
+export function definePages(defs: PageDefinition[]): PageRecordConfig[] {
+  return defs.map((def, i) => {
+    const order = i + 1;
+    return {
+      ...def,
+      order,
+      docUrl: docUrlFor(def.docPath),
+      demoUrl: demoUrlFor(def.route),
+      filename: `${PROJECT.videoPrefix}-${String(order).padStart(2, '0')}-${def.videoName}`,
+    };
+  });
+}
+
+/**
+ * How a page handler reports what it saw, so the summary and results see it too.
+ *
+ * Before this, a handler that noticed "the weather card never rendered" could
+ * only `console.warn` it. The run still printed `[PASS]` with no asterisk, and
+ * RECORD_RESULTS.json carried nothing. `warn` puts the note on the result as `PASS*`;
+ * `fail` marks the recording failed once the handler returns, so the clip is
+ * still filmed to the end and still saved as evidence.
+ */
+export interface ActionContext {
+  /** The clip is usable but something the doc promises was not observed. */
+  warn: (message: string) => void;
+  /** The feature under test did not work. The recording finishes, then fails. */
+  fail: (message: string) => void;
+  /**
+   * The page's declared `knownIssue` was observed in this take, with what was
+   * seen. A page with a `knownIssue` is `[ISSUE]` only if its handler calls
+   * this; otherwise the defect did not reproduce and the take says so. Without
+   * it, a fixed defect kept reporting `[ISSUE]` forever.
+   */
+  reproduced: (evidence: string) => void;
+  /** Resolved timeouts for this page. */
+  timeouts: RecorderTimeouts;
+}
+
+/**
+ * Every fixed wait in the recorder, in one place.
+ *
+ * These used to be literals scattered through `core/`. Defaults live in
+ * `core/timeouts.ts`; a project sets `PROJECT.timeouts` and a page sets
+ * `timeouts` to override.
+ */
+export interface RecorderTimeouts {
+  /** Loading the external doc page. */
+  docNavMs: number;
+  /** Loading the demo route. First hit on a dev route compiles it. */
+  demoNavMs: number;
+  /** Chat surface visible after the demo route loads. */
+  chatReadyMs: number;
+  /** A reply *starting* after the prompt is sent. */
+  replyStartMs: number;
+  /** A reply finishing once it has started. */
+  replyStreamMs: number;
+}
+
+export type PageActionHandler = (
+  page: Page,
+  config: PageRecordConfig,
+  rootPath: string,
+  ctx: ActionContext,
+) => Promise<void>;
